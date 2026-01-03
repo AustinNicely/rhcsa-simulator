@@ -1,0 +1,6 @@
+# RHCSA Mock Exam Simulator - Python Dependencies
+#
+# This project uses ONLY Python standard library.
+# No external dependencies are required!
+#
+# Compatible with Python 3.6+ (included in RHEL 8/9)

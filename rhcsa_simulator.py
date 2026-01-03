@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""
+RHCSA Mock Exam Simulator - Main Entry Point
+
+A realistic RHCSA exam simulator that generates tasks, validates system state,
+and tracks progress over time.
+"""
+
+import sys
+import os
+import logging
+
+# Add project root to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from utils.helpers import require_root
+from utils.logging import setup_logging
+from core.menu import MenuSystem
+from core.exam import run_exam_mode
+from core.practice import run_practice_mode
+from core.results import get_results_manager
+from config import settings
+
+
+def main():
+    """Main application entry point."""
+    # Set up logging
+    setup_logging()
+    logger = logging.getLogger(__name__)
+
+    # Check root privileges
+    try:
+        require_root()
+    except SystemExit:
+        return 1
+
+    # Initialize menu system
+    menu = MenuSystem()
+
+    # Main loop
+    while True:
+        try:
+            choice = menu.display_main_menu()
+
+            if choice == 'exam':
+                run_exam_mode()
+                input("\nPress Enter to return to menu...")
+
+            elif choice == 'practice':
+                run_practice_mode()
+                input("\nPress Enter to return to menu...")
+
+            elif choice == 'progress':
+                results_mgr = get_results_manager()
+                results_mgr.display_progress()
+                input("\nPress Enter to return to menu...")
+
+            elif choice == 'stats':
+                menu.show_stats()
+
+            elif choice == 'help':
+                menu.show_help()
+
+            elif choice == 'exit':
+                print("\nThank you for using RHCSA Mock Exam Simulator!")
+                print("Good luck with your certification!")
+                return 0
+
+        except KeyboardInterrupt:
+            print("\n\nInterrupted by user.")
+            confirm = input("Are you sure you want to exit? [y/N]: ").strip().lower()
+            if confirm in ['y', 'yes']:
+                return 0
+
+        except Exception as e:
+            logger.exception("Unexpected error in main loop")
+            print(f"\nError: {e}")
+            print("Please report this issue if it persists.")
+            input("Press Enter to return to menu...")
+
+
+if __name__ == '__main__':
+    sys.exit(main())

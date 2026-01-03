@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+data/logs/
+
+# Exam results (user data)
+data/results/*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keep data directories but not contents
+!data/results/.gitkeep
+!data/logs/.gitkeep
