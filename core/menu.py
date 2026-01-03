@@ -24,30 +24,44 @@ class MenuSystem:
 
             print(fmt.bold("Main Menu:"))
             print()
-            fmt.print_menu_option(1, "Exam Mode", "Take a full mock RHCSA exam (15-20 tasks)")
-            fmt.print_menu_option(2, "Practice Mode", "Practice specific task categories")
-            fmt.print_menu_option(3, "View Progress", "See your exam history and statistics")
-            fmt.print_menu_option(4, "Task Statistics", "View available tasks by category")
-            fmt.print_menu_option(5, "Help", "How to use this simulator")
-            fmt.print_menu_option(6, "Exit", "Quit the simulator")
+            print(fmt.dim("=== Learning Modes ==="))
+            fmt.print_menu_option(1, "Learn Mode", "Study RHCSA concepts with explanations & examples")
+            fmt.print_menu_option(2, "Guided Practice", "Practice with progressive hints & feedback")
+            fmt.print_menu_option(3, "Command Recall", "Build muscle memory by typing commands")
+            print()
+            print(fmt.dim("=== Testing Modes ==="))
+            fmt.print_menu_option(4, "Exam Mode", "Take a full mock RHCSA exam (15-20 tasks)")
+            fmt.print_menu_option(5, "Practice Mode", "Practice specific task categories")
+            print()
+            print(fmt.dim("=== Progress & Help ==="))
+            fmt.print_menu_option(6, "View Progress", "See your exam history and statistics")
+            fmt.print_menu_option(7, "Task Statistics", "View available tasks by category")
+            fmt.print_menu_option(8, "Help", "How to use this simulator")
+            fmt.print_menu_option(9, "Exit", "Quit the simulator")
             print()
 
-            choice = input("Select an option [1-6]: ").strip()
+            choice = input("Select an option [1-9]: ").strip()
 
             if choice == '1':
-                return 'exam'
+                return 'learn'
             elif choice == '2':
-                return 'practice'
+                return 'guided_practice'
             elif choice == '3':
-                return 'progress'
+                return 'command_recall'
             elif choice == '4':
-                return 'stats'
+                return 'exam'
             elif choice == '5':
-                return 'help'
+                return 'practice'
             elif choice == '6':
+                return 'progress'
+            elif choice == '7':
+                return 'stats'
+            elif choice == '8':
+                return 'help'
+            elif choice == '9':
                 return 'exit'
             else:
-                print(fmt.error("Invalid selection. Please choose 1-6."))
+                print(fmt.error("Invalid selection. Please choose 1-9."))
                 input("Press Enter to continue...")
 
     def _print_header(self):
@@ -62,7 +76,33 @@ class MenuSystem:
         help_text = """
 RHCSA Mock Exam Simulator - How to Use
 
-1. EXAM MODE
+=== LEARNING MODES ===
+
+1. LEARN MODE
+   - Study RHCSA concepts with detailed explanations
+   - See command syntax, examples, and common flags
+   - Learn common mistakes to avoid
+   - Review exam-specific tricks and tips
+   - Best for: First-time learners, reviewing unfamiliar topics
+
+2. GUIDED PRACTICE
+   - Practice tasks with progressive 3-level hints
+   - Level 1: Concept reminder
+   - Level 2: Command structure and syntax
+   - Level 3: Full solution with examples
+   - Get adaptive feedback explaining failures
+   - Best for: Building confidence, learning proper approach
+
+3. COMMAND RECALL TRAINING
+   - Build muscle memory by typing commands
+   - Type the command before running it on your system
+   - Get instant feedback on command accuracy
+   - Track your command recall accuracy
+   - Best for: Memorizing commands, building speed
+
+=== TESTING MODES ===
+
+4. EXAM MODE
    - Simulates a real RHCSA exam with 15-20 tasks
    - Tasks cover all RHCSA objectives
    - Optional 2.5-hour timer
@@ -70,44 +110,53 @@ RHCSA Mock Exam Simulator - How to Use
    - Return to validate your work
    - Results are saved and tracked over time
 
-2. PRACTICE MODE
-   - Practice specific categories (users, LVM, SELinux, etc.)
+5. PRACTICE MODE
+   - Practice specific categories without hints
    - Choose difficulty level (easy/exam/hard)
-   - Get immediate feedback after each task
-   - See hints if you need help
+   - Get immediate pass/fail feedback
+   - Test your knowledge without assistance
 
-3. VIEW PROGRESS
+=== PROGRESS & HELP ===
+
+6. VIEW PROGRESS
    - See your exam history
    - Track score trends over time
    - View pass rates and statistics
 
-4. IMPORTANT NOTES
-   - You must run this as root (sudo)
-   - This tool VALIDATES your work - it doesn't make changes
-   - All validation commands are read-only and safe
-   - Complete tasks on your actual Linux system
-   - You can validate multiple times during an exam
+7. TASK STATISTICS
+   - See all available tasks by category
+   - Check task counts and coverage
 
-5. EXAM PREPARATION TIPS
-   - Practice each category individually first
-   - Take multiple full exams to build confidence
-   - Review failed tasks to understand mistakes
-   - Real RHCSA exam allows access to documentation
-   - Focus on understanding, not memorization
+=== IMPORTANT NOTES ===
 
-6. CATEGORIES COVERED
-   - Users & Groups Management
-   - File Permissions & ACLs
-   - LVM (Logical Volume Management)
-   - File Systems
-   - Networking
-   - SELinux
-   - Services (systemd)
-   - Boot Targets
-   - Process Management
-   - Task Scheduling
-   - Containers (Podman)
-   - Essential Tools
+- You must run this as root (sudo)
+- This tool VALIDATES your work - it doesn't make changes
+- All validation commands are read-only and safe
+- Complete tasks on your actual Linux system
+- You can validate multiple times during an exam
+
+=== RECOMMENDED LEARNING PATH ===
+
+1. Start with LEARN MODE for each topic
+2. Practice with GUIDED PRACTICE (use hints as needed)
+3. Build speed with COMMAND RECALL TRAINING
+4. Test yourself with PRACTICE MODE (no hints)
+5. Take full EXAM MODE when confident
+
+=== CATEGORIES COVERED ===
+
+- Users & Groups Management
+- File Permissions & ACLs
+- LVM (Logical Volume Management)
+- File Systems
+- Networking
+- SELinux
+- Services (systemd)
+- Boot Targets
+- Process Management
+- Task Scheduling
+- Containers (Podman)
+- Essential Tools
 
 For more information, visit: https://www.redhat.com/rhcsa
         """

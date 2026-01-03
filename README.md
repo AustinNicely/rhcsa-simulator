@@ -4,12 +4,20 @@ A realistic command-line RHCSA (Red Hat Certified System Administrator) exam sim
 
 ## Features
 
+### Learning Modes
+- **Learn Mode**: Study RHCSA concepts with detailed explanations, command syntax, examples, common mistakes, and exam tricks
+- **Guided Practice**: Practice tasks with progressive 3-level hints (concept → command structure → full solution)
+- **Command Recall Training**: Build muscle memory by typing commands before execution with instant accuracy feedback
+
+### Testing Modes
 - **Full Exam Mode**: Simulates a complete RHCSA exam with 15-20 tasks covering all objectives
 - **Practice Mode**: Focus on specific categories (Users, LVM, SELinux, etc.) at different difficulty levels
+
+### Core Features
 - **Automatic Validation**: Validates your system configuration using safe, read-only commands
+- **Adaptive Feedback**: Explains what was expected vs. what was found for each failed check
 - **Progress Tracking**: Saves exam results and displays statistics over time
 - **Timer Support**: Optional 2.5-hour timer to simulate real exam conditions
-- **Detailed Feedback**: Shows exactly what was checked and why tasks pass or fail
 - **Offline Operation**: No internet connection required
 - **Safe & Secure**: Uses command whitelisting and validation-only approach
 
@@ -67,6 +75,38 @@ sudo rhcsa-simulator
 6. Return to simulator and press Enter to validate
 7. Review your results and detailed feedback
 
+### Learn Mode
+
+1. Select "Learn Mode" from main menu
+2. Choose a topic to study
+3. Review:
+   - Concept explanations
+   - Command syntax with examples
+   - Common mistakes to avoid
+   - Exam-specific tricks and tips
+4. Optionally jump to practice mode for that topic
+
+### Guided Practice Mode
+
+1. Select "Guided Practice" from main menu
+2. Choose a category and difficulty level
+3. Read each task carefully
+4. Use progressive hints if needed:
+   - Hint 1: Concept reminder
+   - Hint 2: Command structure and syntax
+   - Hint 3: Full solution with examples
+5. Complete task and get adaptive feedback
+6. Review detailed explanations for any failures
+
+### Command Recall Training
+
+1. Select "Command Recall" from main menu
+2. Choose a category and difficulty level
+3. Read the task description
+4. Type the command(s) you would use
+5. Get instant feedback on command accuracy
+6. Build muscle memory and improve speed
+
 ### Practice Mode
 
 1. Select "Practice Mode" from main menu
@@ -78,7 +118,7 @@ sudo rhcsa-simulator
    - Services (systemd)
    - And more...
 3. Select difficulty level (easy/exam/hard)
-4. Complete each task and get immediate feedback
+4. Complete each task and get immediate feedback (no hints)
 
 ### View Progress
 
@@ -86,6 +126,37 @@ Track your improvement over time:
 - Overall statistics (average score, pass rate)
 - Recent exam results
 - Performance by category
+
+## Recommended Learning Path
+
+For best results, follow this progression:
+
+1. **Learn** - Study each topic with Learn Mode
+   - Understand concepts before practicing
+   - Review command syntax and examples
+   - Learn common mistakes and exam tricks
+
+2. **Guided Practice** - Build confidence with hints
+   - Start practicing tasks with support
+   - Use hints when stuck
+   - Learn from adaptive feedback
+
+3. **Command Recall** - Build muscle memory
+   - Practice typing commands from memory
+   - Improve speed and accuracy
+   - Build exam-day confidence
+
+4. **Practice Mode** - Test without hints
+   - Validate your knowledge independently
+   - Identify weak areas
+   - Build problem-solving skills
+
+5. **Exam Mode** - Full exam simulation
+   - Take complete timed exams
+   - Simulate real exam pressure
+   - Track your progress over time
+
+**Pro Tip**: Cycle through topics rather than mastering one at a time. This improves retention and helps you see connections between different RHCSA objectives.
 
 ## Task Categories
 

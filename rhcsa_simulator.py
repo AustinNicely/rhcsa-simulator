@@ -18,6 +18,9 @@ from utils.logging import setup_logging
 from core.menu import MenuSystem
 from core.exam import run_exam_mode
 from core.practice import run_practice_mode
+from core.practice_enhanced import run_guided_practice
+from core.learn import run_learn_mode
+from core.command_recall import run_command_recall
 from core.results import get_results_manager
 from config import settings
 
@@ -42,7 +45,19 @@ def main():
         try:
             choice = menu.display_main_menu()
 
-            if choice == 'exam':
+            if choice == 'learn':
+                run_learn_mode()
+                input("\nPress Enter to return to menu...")
+
+            elif choice == 'guided_practice':
+                run_guided_practice()
+                input("\nPress Enter to return to menu...")
+
+            elif choice == 'command_recall':
+                run_command_recall()
+                input("\nPress Enter to return to menu...")
+
+            elif choice == 'exam':
                 run_exam_mode()
                 input("\nPress Enter to return to menu...")
 
