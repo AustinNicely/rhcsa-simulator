@@ -361,6 +361,192 @@ full LVM stack and resize volumes.
                 "Filesystem resize is separate step (unless -r flag)",
                 "Path is /dev/vgname/lvname or /dev/mapper/vgname-lvname"
             ]
+        },
+
+        "networking": {
+            "name": "Networking Configuration",
+            "explanation": """
+Network configuration in RHEL 8/9 uses NetworkManager and nmcli command.
+You must configure static IP addresses, DNS, hostnames, and network interfaces.
+The exam tests your ability to use nmcli to create and modify connections,
+configure IPv4/IPv6 addressing, set DNS servers, and manage network interfaces.
+Understanding connection profiles and device management is critical.
+            """,
+            "commands": [
+                {
+                    "name": "Show Network Connections",
+                    "syntax": "nmcli connection show",
+                    "example": "nmcli connection show",
+                    "flags": {
+                        "show": "Display all connections",
+                        "show <name>": "Show specific connection details",
+                        "nmcli con show": "Short form",
+                        "nmcli device status": "Show device status"
+                    }
+                },
+                {
+                    "name": "Configure Static IP",
+                    "syntax": "nmcli con mod <name> ipv4.addresses <ip>/<prefix> ipv4.gateway <gw> ipv4.method manual",
+                    "example": "nmcli con mod eth0 ipv4.addresses 192.168.1.100/24 ipv4.gateway 192.168.1.1 ipv4.method manual",
+                    "flags": {
+                        "ipv4.addresses": "Set IP address with CIDR notation",
+                        "ipv4.gateway": "Set default gateway",
+                        "ipv4.method": "manual (static) or auto (DHCP)",
+                        "ipv4.dns": "DNS servers (space-separated)"
+                    }
+                },
+                {
+                    "name": "Set DNS Servers",
+                    "syntax": "nmcli con mod <name> ipv4.dns '<dns1> <dns2>'",
+                    "example": "nmcli con mod eth0 ipv4.dns '8.8.8.8 8.8.4.4'",
+                    "flags": {
+                        "ipv4.dns": "Space-separated DNS IPs (quoted)",
+                        "+ipv4.dns": "Add DNS server",
+                        "-ipv4.dns": "Remove DNS server"
+                    }
+                },
+                {
+                    "name": "Set Hostname",
+                    "syntax": "hostnamectl set-hostname <hostname>",
+                    "example": "hostnamectl set-hostname server1.example.com",
+                    "flags": {
+                        "set-hostname": "Set persistent hostname",
+                        "status": "Show current hostname",
+                        "--static": "Set static hostname",
+                        "--transient": "Set transient hostname"
+                    }
+                },
+                {
+                    "name": "Activate Connection",
+                    "syntax": "nmcli con up <name>",
+                    "example": "nmcli con up eth0",
+                    "flags": {
+                        "up": "Activate connection",
+                        "down": "Deactivate connection",
+                        "reload": "Reload config files"
+                    }
+                }
+            ],
+            "common_mistakes": [
+                "Forgetting CIDR notation (/24) in IP address",
+                "Not quoting DNS servers (space-separated)",
+                "Using 'device' instead of 'connection' for config",
+                "Forgetting to activate connection after changes",
+                "Setting ipv4.method to auto when manual IP is required"
+            ],
+            "exam_tricks": [
+                "Must use nmcli, not editing config files directly",
+                "Connection name may differ from interface name",
+                "Changes require 'nmcli con up' to take effect",
+                "Hostname must be FQDN if specified (server.domain.com)"
+            ]
+        },
+
+        "filesystems": {
+            "name": "File Systems & Mounting",
+            "explanation": """
+File system management includes creating filesystems, mounting them,
+and configuring persistent mounts via /etc/fstab. RHEL 8/9 defaults
+to XFS but also supports ext4. You must know mkfs commands, mount/umount,
+UUID-based fstab entries, and mount options. The exam tests creating
+filesystems on partitions or LVs and making mounts persistent.
+            """,
+            "commands": [
+                {"name": "Create XFS Filesystem", "syntax": "mkfs.xfs <device>", "example": "mkfs.xfs /dev/vgdata/lvdata", "flags": {"mkfs.xfs": "Create XFS filesystem (RHEL default)", "-f": "Force overwrite existing filesystem", "-L": "Set filesystem label"}},
+                {"name": "Create ext4 Filesystem", "syntax": "mkfs.ext4 <device>", "example": "mkfs.ext4 /dev/sdb1", "flags": {"mkfs.ext4": "Create ext4 filesystem", "-L": "Set filesystem label", "-m": "Reserved blocks percentage"}},
+                {"name": "Mount Filesystem (Temporary)", "syntax": "mount <device> <mountpoint>", "example": "mount /dev/vgdata/lvdata /mnt/data", "flags": {"mount": "Mount filesystem now (not persistent)", "-t": "Specify filesystem type", "-o": "Mount options (ro, rw, noexec, etc.)", "umount": "Unmount filesystem"}},
+                {"name": "Get UUID", "syntax": "blkid <device>", "example": "blkid /dev/vgdata/lvdata", "flags": {"blkid": "Show UUID and filesystem type", "-s UUID -o value": "Show only UUID", "lsblk -f": "Alternative to see UUIDs"}},
+                {"name": "Add to fstab (Persistent)", "syntax": "echo 'UUID=<uuid> <mount> <type> defaults 0 0' >> /etc/fstab", "example": "echo 'UUID=abc123... /mnt/data xfs defaults 0 0' >> /etc/fstab; mount -a", "flags": {"UUID=": "Use UUID (preferred over device path)", "<mount>": "Mount point directory", "<type>": "Filesystem type (xfs, ext4)", "defaults": "Default mount options", "0 0": "Dump and fsck order", "mount -a": "Mount all fstab entries (test)"}}
+            ],
+            "common_mistakes": ["Using device path instead of UUID in fstab", "Mount point doesn't exist (must create with mkdir)", "Wrong filesystem type in fstab", "Not testing with 'mount -a' before reboot", "Typos in fstab can prevent boot"],
+            "exam_tricks": ["Always use UUID in fstab, not /dev/sdX", "Create mount point directory first (mkdir)", "Test with 'mount -a' to verify fstab syntax", "XFS is default in RHEL 8/9 unless specified otherwise"]
+        },
+
+        "boot": {
+            "name": "Boot Targets & System Boot",
+            "explanation": """
+Systemd boot targets replace traditional runlevels in RHEL 8/9.
+Common targets are multi-user.target (CLI) and graphical.target (GUI).
+You must know how to check the current target, change it temporarily,
+and set the default target for future boots. The exam may ask you to
+change boot targets or understand the boot process.
+            """,
+            "commands": [
+                {"name": "Show Current Target", "syntax": "systemctl get-default", "example": "systemctl get-default", "flags": {"get-default": "Show default boot target", "list-units --type=target": "Show all active targets", "systemctl isolate": "Switch target now"}},
+                {"name": "Set Default Boot Target", "syntax": "systemctl set-default <target>", "example": "systemctl set-default multi-user.target", "flags": {"set-default": "Set persistent default target", "multi-user.target": "CLI mode (runlevel 3)", "graphical.target": "GUI mode (runlevel 5)", "rescue.target": "Single-user rescue mode"}},
+                {"name": "Switch Target (Temporary)", "syntax": "systemctl isolate <target>", "example": "systemctl isolate graphical.target", "flags": {"isolate": "Switch to target immediately", "Does not change default target": "Temporary until reboot"}},
+                {"name": "Reboot and Power Off", "syntax": "systemctl reboot / poweroff", "example": "systemctl reboot", "flags": {"reboot": "Reboot system", "poweroff": "Shut down system", "halt": "Halt system", "rescue": "Enter rescue mode"}}
+            ],
+            "common_mistakes": ["Using 'isolate' when permanent change is needed", "Using 'set-default' when immediate change is needed", "Confusing runlevels with targets", "Not verifying change with get-default"],
+            "exam_tricks": ["Task says 'boot into' = set-default (permanent)", "Task says 'switch to' = isolate (temporary)", "Multi-user = CLI, Graphical = GUI", "Always verify with 'systemctl get-default'"]
+        },
+
+        "containers": {
+            "name": "Container Management (Podman)",
+            "explanation": """
+Podman is the container engine in RHEL 8/9, compatible with Docker commands.
+You must know how to run containers, manage images, configure port mapping,
+set environment variables, and make containers persistent with systemd.
+The exam tests basic podman commands: run, ps, images, exec, and creating
+systemd unit files for rootless containers.
+            """,
+            "commands": [
+                {"name": "Run Container", "syntax": "podman run -d --name <name> -p <host>:<container> <image>", "example": "podman run -d --name web -p 8080:80 nginx", "flags": {"-d": "Detached mode (background)", "--name": "Container name", "-p": "Port mapping (host:container)", "-e": "Environment variable", "-v": "Volume mount (host:container)"}},
+                {"name": "List Containers", "syntax": "podman ps -a", "example": "podman ps -a", "flags": {"ps": "List running containers", "-a": "Show all (including stopped)", "ps -l": "Show latest container"}},
+                {"name": "List Images", "syntax": "podman images", "example": "podman images", "flags": {"images": "List all local images", "pull <image>": "Download image", "rmi <image>": "Remove image"}},
+                {"name": "Execute in Container", "syntax": "podman exec -it <container> <command>", "example": "podman exec -it web /bin/bash", "flags": {"exec": "Run command in running container", "-it": "Interactive terminal", "logs <container>": "View container logs"}},
+                {"name": "Generate Systemd Unit", "syntax": "podman generate systemd --name <container> --files --new", "example": "podman generate systemd --name web --files --new", "flags": {"generate systemd": "Create systemd unit file", "--name": "Use container name", "--files": "Write to file", "--new": "Create new container on start", "systemctl --user": "User service (rootless)"}}
+            ],
+            "common_mistakes": ["Forgetting -d flag (container runs in foreground)", "Port already in use on host", "Not pulling image before running", "Wrong systemd path for user services", "Forgetting to enable systemd service"],
+            "exam_tricks": ["Rootless containers use systemctl --user", "User systemd units go in ~/.config/systemd/user/", "Must enable AND start systemd service", "Container name must match in systemd commands"]
+        },
+
+        "essential_tools": {
+            "name": "Essential Command-Line Tools",
+            "explanation": """
+Essential tools include file searching (find, locate), text processing
+(grep, sed, awk), archiving (tar), compression (gzip, bzip2), and
+input/output redirection. The exam tests your ability to efficiently
+search for files, filter text, create archives, and manipulate output.
+            """,
+            "commands": [
+                {"name": "Find Files", "syntax": "find <path> -name '<pattern>'", "example": "find /etc -name '*.conf'", "flags": {"-name": "Match filename", "-type f": "Files only"}},
+                {"name": "Search Text", "syntax": "grep '<pattern>' <file>", "example": "grep 'ERROR' /var/log/messages", "flags": {"-i": "Case-insensitive", "-r": "Recursive"}},
+                {"name": "Create Archive", "syntax": "tar -czf <archive.tar.gz> <files>", "example": "tar -czf backup.tar.gz /etc/httpd/", "flags": {"-c": "Create", "-z": "Gzip", "-f": "Filename"}}
+            ],
+            "common_mistakes": ["Wrong tar flag order", "Forgetting quotes in find pattern"],
+            "exam_tricks": ["Find by permission: find / -perm 4755", "Tar auto-detects compression"]
+        },
+
+        "processes": {
+            "name": "Process Management",
+            "explanation": """
+Process management includes viewing processes, killing processes,
+changing priorities, and managing jobs. You must know ps, top, kill,
+nice/renice commands.
+            """,
+            "commands": [
+                {"name": "List Processes", "syntax": "ps aux", "example": "ps aux | grep httpd", "flags": {"aux": "All processes"}},
+                {"name": "Kill Process", "syntax": "kill <PID>", "example": "kill 1234", "flags": {"kill": "SIGTERM", "-9": "Force"}},
+                {"name": "Change Priority", "syntax": "nice -n <value> <command>", "example": "nice -n 10 backup.sh", "flags": {"-n": "Nice value (-20 to 19)"}}
+            ],
+            "common_mistakes": ["Using kill -9 first", "Confusing nice values"],
+            "exam_tricks": ["Find PID: pgrep or pidof", "Nice: -20 = high, 19 = low"]
+        },
+
+        "scheduling": {
+            "name": "Task Scheduling (cron & at)",
+            "explanation": """
+Task scheduling uses cron for recurring jobs and at for one-time jobs.
+You must know crontab syntax (minute hour day month weekday).
+            """,
+            "commands": [
+                {"name": "Edit Crontab", "syntax": "crontab -e -u <user>", "example": "crontab -e -u alice", "flags": {"-e": "Edit", "-l": "List"}},
+                {"name": "Crontab Syntax", "syntax": "MIN HOUR DAY MONTH WEEKDAY COMMAND", "example": "30 2 * * * /usr/local/bin/backup.sh", "flags": {"*": "Every", "*/N": "Every N"}},
+                {"name": "One-Time Task", "syntax": "at <time>", "example": "echo '/usr/bin/report.sh' | at 22:00", "flags": {"at": "Schedule once", "atq": "List jobs"}}
+            ],
+            "common_mistakes": ["Wrong field order", "Forgetting absolute paths"],
+            "exam_tricks": ["Crontab: MIN HOUR DAY MONTH WEEKDAY", "0 2 * * * = 2 AM daily"]
         }
     }
 
