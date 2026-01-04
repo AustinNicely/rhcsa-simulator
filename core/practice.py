@@ -57,6 +57,31 @@ class PracticeSession:
 
         print(fmt.success("\nPractice session complete!"))
 
+    def _show_fix_suggestion(self, check, task):
+        """Show specific suggestions for fixing failed checks."""
+        suggestions = {
+            "user_exists": "useradd -m USERNAME",
+            "correct_uid": "usermod -u UID USERNAME",
+            "correct_groups": "usermod -aG group1,group2 USERNAME",
+            "permissions": "chmod OCTAL file",
+            "service_active": "systemctl start SERVICE",
+            "service_enabled": "systemctl enable SERVICE",
+        }
+        if check.name in suggestions:
+            print(f"   How to fix: {suggestions[check.name]}")
+
+    def _show_solution(self, task):
+        """Show all hints as solution."""
+        print()
+        print("=" * 60)
+        print("SOLUTION / HINTS")
+        print("=" * 60)
+        if task.hints:
+            for i, hint in enumerate(task.hints, 1):
+                print(f"  {i}. {hint}")
+        print("=" * 60)
+        print()
+
     def _select_category(self):
         """Select practice category."""
         fmt.clear_screen()
@@ -144,6 +169,7 @@ class PracticeSession:
         # Display result
         print()
         print(fmt.bold("Validation Results:"))
+        print("=" * 60)
         for check in result.checks:
             fmt.print_check_result(
                 check.name,
@@ -152,8 +178,18 @@ class PracticeSession:
                 check.points if check.passed else 0,
                 check.points
             )
+            if not check.passed:
+                self._show_fix_suggestion(check, task)
 
+        print("=" * 60)
         fmt.print_result_summary(result.passed, result.score, result.max_score, result.percentage)
+        
+        # Offer to show solution if failed
+        if not result.passed and task.hints:
+            print()
+            if confirm_action("Show solution hints?", default=False):
+                self._show_solution(task)
+                input("Press Enter to continue...")
 
         # Continue?
         if current < total:
