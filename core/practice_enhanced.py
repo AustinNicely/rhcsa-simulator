@@ -6,6 +6,8 @@ import logging
 from tasks.registry import TaskRegistry
 from core.validator import get_validator
 from core.learn import LearnContent
+from core.ai_feedback import get_ai_agent
+from core.command_analyzer import CommandHistoryAnalyzer
 from utils import formatters as fmt
 from utils.helpers import confirm_action
 from config import settings
@@ -26,6 +28,8 @@ class GuidedPracticeSession:
         self.task_count = settings.DEFAULT_PRACTICE_TASKS
         self.hints_used = []  # Track hints per task
         self.logger = logging.getLogger(__name__)
+        self.ai_agent = get_ai_agent()
+        self.command_analyzer = CommandHistoryAnalyzer()
 
     def start(self):
         """Start guided practice session."""
@@ -103,12 +107,22 @@ class GuidedPracticeSession:
         print("=" * 70)
         print()
 
+        # Start command tracking for this task
+        self.command_analyzer.start_session()
+
         # Display task
         print(fmt.bold("📋 TASK:"))
         print(task.description)
         print()
         print(fmt.bold(f"Points: {task.points}"))
         print(fmt.bold(f"Difficulty: {fmt.format_difficulty(task.difficulty)}"))
+        print()
+
+        # Show AI availability
+        if self.ai_agent.is_available():
+            print(fmt.success("🤖 AI-powered feedback enabled"))
+        else:
+            print(fmt.dim("💡 Set ANTHROPIC_API_KEY for AI-powered feedback"))
         print()
 
         # Progressive hint system
@@ -152,8 +166,11 @@ class GuidedPracticeSession:
         validator = get_validator()
         result = validator.validate_task(task)
 
-        # Display adaptive feedback
-        self._show_adaptive_feedback(task, result, hints_used)
+        # Get commands used during this task
+        commands_used = self.command_analyzer.get_session_commands()
+
+        # Display adaptive feedback with AI analysis
+        self._show_adaptive_feedback(task, result, hints_used, commands_used)
 
         # Continue?
         if current < total:
@@ -238,10 +255,11 @@ class GuidedPracticeSession:
         # Return first command if no match
         return content['commands'][0] if content['commands'] else None
 
-    def _show_adaptive_feedback(self, task, result, hints_used):
+    def _show_adaptive_feedback(self, task, result, hints_used, commands_used):
         """
         Show detailed, adaptive feedback based on results.
         Explains what was expected vs what was found.
+        Includes AI-powered analysis if available.
         """
         print(fmt.bold("📊 VALIDATION RESULTS:"))
         print("=" * 70)
@@ -260,7 +278,7 @@ class GuidedPracticeSession:
 
             # Add detailed explanation for failures
             if not check.passed:
-                self._explain_failure(check, task)
+                self._explain_failure(check, task, commands_used)
 
         # Overall result
         print()
@@ -279,20 +297,84 @@ class GuidedPracticeSession:
                 print(fmt.warning("   📚 Keep practicing! Used 2 hints"))
             else:
                 print(fmt.warning("   📖 Review the concepts! Used all hints"))
+
+            # AI: Show approach comparison if available
+            if self.ai_agent.is_available() and commands_used:
+                print()
+                print(fmt.bold("🤖 AI FEEDBACK:"))
+                try:
+                    feedback = self.ai_agent.compare_approaches(
+                        task.description,
+                        commands_used,
+                        task.hints[:3],  # Use hints as proxy for optimal commands
+                        result
+                    )
+                    print(fmt.info(feedback))
+                except Exception as e:
+                    logger.debug(f"AI feedback failed: {e}")
         else:
             print(fmt.error(f"✗ TASK FAILED"))
             print(f"   Score: {result.score}/{result.max_score} points ({result.percentage:.0f}%)")
+
+            # AI: Show detailed analysis for failed tasks
+            if self.ai_agent.is_available():
+                print()
+                print(fmt.bold("🤖 AI ANALYSIS:"))
+                try:
+                    feedback = self.ai_agent.analyze_attempt(
+                        task.description,
+                        task.hints,
+                        result,
+                        commands_used
+                    )
+                    print(fmt.info(feedback))
+                except Exception as e:
+                    logger.debug(f"AI analysis failed: {e}")
+                    # Fallback to manual next steps
+                    print()
+                    print(fmt.warning("   🔧 Next Steps:"))
+                    print("      1. Review the failed checks above")
+                    print("      2. Check what commands you ran")
+                    print("      3. Verify the configuration")
+                    print("      4. Try again!")
+            else:
+                print()
+                print(fmt.warning("   🔧 Next Steps:"))
+                print("      1. Review the failed checks above")
+                print("      2. Check what commands you ran")
+                print("      3. Verify the configuration")
+                print("      4. Try again!")
+
+        # Show commands used (if any were tracked)
+        if commands_used:
             print()
-            print(fmt.warning("   🔧 Next Steps:"))
-            print("      1. Review the failed checks above")
-            print("      2. Check what commands you ran")
-            print("      3. Verify the configuration")
-            print("      4. Try again!")
+            print(fmt.dim("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"))
+            print(fmt.dim(f"Commands executed: {len(commands_used)}"))
+            if len(commands_used) <= 10:
+                for cmd in commands_used:
+                    print(fmt.dim(f"  {cmd['sequence']}. {cmd['command']}"))
+            else:
+                print(fmt.dim(f"  (Run 'history' to see all commands)"))
 
         print("=" * 70)
 
-    def _explain_failure(self, check, task):
+    def _explain_failure(self, check, task, commands_used):
         """Provide detailed explanation for why a check failed."""
+        # Try AI explanation first
+        if self.ai_agent.is_available():
+            try:
+                ai_explanation = self.ai_agent.explain_failure(
+                    check.name,
+                    check.message,
+                    task.description,
+                    commands_used
+                )
+                print(f"   💡 {fmt.warning(ai_explanation)}")
+                return
+            except Exception as e:
+                logger.debug(f"AI explanation failed: {e}")
+
+        # Fallback to hardcoded explanations
         explanations = {
             "user_exists": "The user account was not found. Did you run useradd?",
             "correct_uid": "The UID doesn't match. Check the -u flag value.",

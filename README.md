@@ -21,6 +21,15 @@ A realistic command-line RHCSA (Red Hat Certified System Administrator) exam sim
 - **Offline Operation**: No internet connection required
 - **Safe & Secure**: Uses command whitelisting and validation-only approach
 
+### AI-Powered Feedback (Optional)
+- **Intelligent Analysis**: Line-by-line command analysis using Claude AI
+- **Smart Explanations**: Understands WHY you failed, not just that you failed
+- **Approach Comparison**: Compares your solution to optimal approaches
+- **Contextual Tips**: RHCSA exam tips personalized to each task
+- **Command Tracking**: Automatically tracks and categorizes commands you execute
+
+**Setup**: See [AI_SETUP.md](AI_SETUP.md) for configuration instructions (requires Anthropic API key)
+
 ## Requirements
 
 - **OS**: RHEL 8/9, Rocky Linux 8/9, or Alma Linux 8/9
@@ -346,6 +355,13 @@ This is an educational tool for RHCSA exam preparation. Use at your own risk on 
 - [RHEL Documentation](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/)
 
 ## Version
+
+**v2.0.0** - AI-Powered Feedback Release
+- Added AI-powered intelligent feedback using Claude API
+- Command history tracking and analysis
+- Line-by-line approach comparison
+- Contextual failure explanations
+- Complete RHCSA exam coverage (all 12 categories)
 
 **v1.0.0** - Initial release
 
