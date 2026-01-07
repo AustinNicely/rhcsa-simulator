@@ -548,3 +548,151 @@ def get_archive_compression(archive_path):
         elif 'tar archive' in output:
             return 'none'
     return None
+
+
+# Boot Validators
+
+def get_default_target():
+    """
+    Get the systemd default target.
+
+    Returns:
+        str: Default target (e.g., 'multi-user.target') or None
+    """
+    result = execute_safe(['systemctl', 'get-default'])
+    if result.success:
+        return result.stdout.strip()
+    return None
+
+
+def validate_default_target(expected_target):
+    """
+    Validate systemd default target.
+
+    Args:
+        expected_target (str): Expected target (e.g., 'graphical.target')
+
+    Returns:
+        bool: True if target matches
+    """
+    actual = get_default_target()
+    return actual == expected_target
+
+
+def get_grub_default_entry():
+    """
+    Get GRUB default boot entry from /etc/default/grub.
+
+    Returns:
+        str: Default entry or None
+    """
+    result = execute_safe(['grep', '^GRUB_DEFAULT=', '/etc/default/grub'])
+    if result.success:
+        # Format: GRUB_DEFAULT=0 or GRUB_DEFAULT=saved
+        line = result.stdout.strip()
+        if '=' in line:
+            return line.split('=', 1)[1].strip('"\'')
+    return None
+
+
+def get_grub_timeout():
+    """
+    Get GRUB timeout value from /etc/default/grub.
+
+    Returns:
+        int: Timeout in seconds or None
+    """
+    result = execute_safe(['grep', '^GRUB_TIMEOUT=', '/etc/default/grub'])
+    if result.success:
+        line = result.stdout.strip()
+        if '=' in line:
+            value = line.split('=', 1)[1].strip('"\'')
+            try:
+                return int(value)
+            except ValueError:
+                pass
+    return None
+
+
+def validate_grub_timeout(expected_timeout):
+    """
+    Validate GRUB timeout setting.
+
+    Args:
+        expected_timeout (int): Expected timeout in seconds
+
+    Returns:
+        bool: True if timeout matches
+    """
+    actual = get_grub_timeout()
+    return actual == expected_timeout
+
+
+def get_grub_cmdline():
+    """
+    Get GRUB kernel command line from /etc/default/grub.
+
+    Returns:
+        str: Command line parameters or None
+    """
+    result = execute_safe(['grep', '^GRUB_CMDLINE_LINUX=', '/etc/default/grub'])
+    if result.success:
+        line = result.stdout.strip()
+        if '=' in line:
+            return line.split('=', 1)[1].strip('"\'')
+    return None
+
+
+def validate_grub_parameter(parameter):
+    """
+    Check if a parameter exists in GRUB kernel command line.
+
+    Args:
+        parameter (str): Parameter to check (e.g., 'quiet', 'rhgb')
+
+    Returns:
+        bool: True if parameter is present
+    """
+    cmdline = get_grub_cmdline()
+    if cmdline:
+        return parameter in cmdline.split()
+    return False
+
+
+def validate_grub_parameter_value(parameter, expected_value):
+    """
+    Check if a parameter has the expected value in GRUB command line.
+
+    Args:
+        parameter (str): Parameter name (e.g., 'console')
+        expected_value (str): Expected value
+
+    Returns:
+        bool: True if parameter=value exists
+    """
+    cmdline = get_grub_cmdline()
+    if cmdline:
+        search_str = f"{parameter}={expected_value}"
+        return search_str in cmdline
+    return False
+
+
+def is_grub_config_updated():
+    """
+    Check if /boot/grub2/grub.cfg exists and has been recently modified.
+    Note: This is a basic check, real validation would require comparing timestamps.
+
+    Returns:
+        bool: True if grub.cfg exists
+    """
+    import os
+    grub_cfg_paths = [
+        '/boot/grub2/grub.cfg',
+        '/boot/efi/EFI/redhat/grub.cfg',
+        '/boot/efi/EFI/centos/grub.cfg'
+    ]
+
+    for path in grub_cfg_paths:
+        if os.path.exists(path):
+            return True
+    return False
