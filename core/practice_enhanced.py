@@ -243,17 +243,24 @@ class GuidedPracticeSession:
 
     def _find_relevant_command(self, task, content):
         """Find the most relevant command from learning content for this task."""
-        # Simple matching based on task description keywords
+        # Score-based matching - find command with most matching words
         task_desc = task.description.lower()
+
+        best_cmd = None
+        best_score = 0
 
         for cmd in content['commands']:
             cmd_name = cmd['name'].lower()
-            # Basic keyword matching
-            if any(word in task_desc for word in cmd_name.split()):
-                return cmd
+            # Count how many words from cmd_name appear in task description
+            words = [w for w in cmd_name.split() if len(w) > 2]  # Skip short words
+            score = sum(1 for word in words if word in task_desc)
 
-        # Return first command if no match
-        return content['commands'][0] if content['commands'] else None
+            if score > best_score:
+                best_score = score
+                best_cmd = cmd
+
+        # Return best match or first command if no match
+        return best_cmd if best_cmd else (content['commands'][0] if content['commands'] else None)
 
     def _show_adaptive_feedback(self, task, result, hints_used, commands_used):
         """
