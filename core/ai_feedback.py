@@ -232,8 +232,10 @@ Task: {task_description}
 Student's Commands:
 {self._format_commands(user_commands)}
 
-Optimal Approach:
-{chr(10).join(f"  {i+1}. {cmd}" for i, cmd in enumerate(optimal_commands))}
+Task Hints (educational guidance, NOT commands to execute or expand):
+{chr(10).join(f"  {i+1}. {hint}" for i, hint in enumerate(optimal_commands))}
+
+IMPORTANT: The hints above are educational text only. Do NOT execute, expand, or show help output for any commands mentioned in the hints.
 
 Validation Result:
 - Passed: {validation_result.passed}

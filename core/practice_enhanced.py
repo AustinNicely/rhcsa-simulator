@@ -306,7 +306,7 @@ class GuidedPracticeSession:
                     feedback = self.ai_agent.compare_approaches(
                         task.description,
                         commands_used,
-                        task.hints[:3],  # Use hints as proxy for optimal commands
+                        task.hints[:3],  # Pass hints for context
                         result
                     )
                     print(fmt.info(feedback))
