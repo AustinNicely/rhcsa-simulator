@@ -52,10 +52,12 @@ class PracticeSession:
             return
 
         # Practice each task
-        for i, task in enumerate(tasks, 1):
-            self._practice_task(task, i, len(tasks))
-
-        print(fmt.success("\nPractice session complete!"))
+        try:
+            for i, task in enumerate(tasks, 1):
+                self._practice_task(task, i, len(tasks))
+            print(fmt.success("\nPractice session complete!"))
+        except StopIteration:
+            print(fmt.info("\nPractice session ended early."))
 
     def _show_fix_suggestion(self, check, task):
         """Show specific suggestions for fixing failed checks."""
@@ -138,63 +140,93 @@ class PracticeSession:
 
     def _practice_task(self, task, current, total):
         """Practice a single task."""
-        fmt.clear_screen()
-        print(f"Practice Task {current}/{total}")
-        print("=" * 60)
-        print()
+        attempt = 1
 
-        # Display task
-        print(fmt.bold("Task:"))
-        print(task.description)
-        print()
-        print(fmt.bold(f"Points: {task.points}"))
-        print(fmt.bold(f"Difficulty: {fmt.format_difficulty(task.difficulty)}"))
-        print()
-
-        # Show hints
-        if task.hints and confirm_action("Show hints?", default=False):
-            print()
-            print(fmt.bold("Hints:"))
-            for i, hint in enumerate(task.hints, 1):
-                print(f"  {i}. {hint}")
+        while True:
+            fmt.clear_screen()
+            print(f"Practice Task {current}/{total}" + (f" (Attempt {attempt})" if attempt > 1 else ""))
+            print("=" * 60)
             print()
 
-        # Wait for completion
-        input("Complete this task on your system, then press Enter to validate...")
-
-        # Validate
-        validator = get_validator()
-        result = validator.validate_task(task)
-
-        # Display result
-        print()
-        print(fmt.bold("Validation Results:"))
-        print("=" * 60)
-        for check in result.checks:
-            fmt.print_check_result(
-                check.name,
-                check.passed,
-                check.message,
-                check.points,
-                check.max_points
-            )
-            if not check.passed:
-                self._show_fix_suggestion(check, task)
-
-        print("=" * 60)
-        fmt.print_result_summary(result.passed, result.score, result.max_score, result.percentage)
-        
-        # Offer to show solution if failed
-        if not result.passed and task.hints:
+            # Display task
+            print(fmt.bold("Task:"))
+            print(task.description)
             print()
-            if confirm_action("Show solution hints?", default=False):
-                self._show_solution(task)
+            print(fmt.bold(f"Points: {task.points}"))
+            print(fmt.bold(f"Difficulty: {fmt.format_difficulty(task.difficulty)}"))
+            print()
+
+            # Show hints
+            if task.hints and confirm_action("Show hints?", default=False):
+                print()
+                print(fmt.bold("Hints:"))
+                for i, hint in enumerate(task.hints, 1):
+                    print(f"  {i}. {hint}")
+                print()
+
+            # Wait for completion
+            input("Complete this task on your system, then press Enter to validate...")
+
+            # Validate
+            validator = get_validator()
+            result = validator.validate_task(task)
+
+            # Display result
+            print()
+            print(fmt.bold("Validation Results:"))
+            print("=" * 60)
+            for check in result.checks:
+                fmt.print_check_result(
+                    check.name,
+                    check.passed,
+                    check.message,
+                    check.points,
+                    check.max_points
+                )
+                if not check.passed:
+                    self._show_fix_suggestion(check, task)
+
+            print("=" * 60)
+            fmt.print_result_summary(result.passed, result.score, result.max_score, result.percentage)
+
+            # If failed, offer retry or show solution
+            if not result.passed:
+                print()
+                print(fmt.bold("Options:"))
+                print("  R - Retry this task")
+                print("  S - Show solution hints")
+                print("  C - Continue to next task")
+                print("  Q - Quit practice session")
+                print()
+
+                choice = input("Select option [R]: ").strip().lower() or 'r'
+
+                if choice == 'r':
+                    attempt += 1
+                    continue  # Retry the same task
+                elif choice == 's':
+                    self._show_solution(task)
+                    # After showing solution, ask again
+                    retry = confirm_action("Try again?", default=True)
+                    if retry:
+                        attempt += 1
+                        continue
+                    else:
+                        break  # Move to next task
+                elif choice == 'q':
+                    raise StopIteration  # Exit practice session
+                else:  # 'c' or anything else
+                    break  # Move to next task
+            else:
+                # Task passed
+                print(fmt.success("\nGreat job!"))
                 input("Press Enter to continue...")
+                break
 
-        # Continue?
+        # Continue to next task?
         if current < total:
             if not confirm_action("Continue to next task?", default=True):
-                return
+                raise StopIteration
 
 
 def run_practice_mode():
