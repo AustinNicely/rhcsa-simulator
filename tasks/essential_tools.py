@@ -102,6 +102,7 @@ class FindFilesTask(BaseTask):
                             name="has_results",
                             passed=False,
                             points=0,
+                            max_points=5,
                             message=f"File is empty"
                         ))
             except Exception as e:
@@ -109,6 +110,7 @@ class FindFilesTask(BaseTask):
                     name="has_results",
                     passed=False,
                     points=0,
+                    max_points=5,
                     message=f"Could not read file: {e}"
                 ))
         else:
@@ -116,6 +118,7 @@ class FindFilesTask(BaseTask):
                 name="output_file_exists",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Output file {self.output_file} not found"
             ))
 
@@ -200,6 +203,7 @@ class GrepSearchTask(BaseTask):
                 name="output_file_exists",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Output file not found"
             ))
 
@@ -298,6 +302,7 @@ class CreateArchiveTask(BaseTask):
                     name="correct_compression",
                     passed=False,
                     points=0,
+                    max_points=4,
                     message=f"Could not determine compression type"
                 ))
 
@@ -316,6 +321,7 @@ class CreateArchiveTask(BaseTask):
                     name="valid_archive",
                     passed=False,
                     points=0,
+                    max_points=3,
                     message=f"Archive is not a valid tar file"
                 ))
         else:
@@ -323,6 +329,7 @@ class CreateArchiveTask(BaseTask):
                 name="archive_exists",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Archive file not found"
             ))
 
@@ -402,6 +409,7 @@ class ExtractArchiveTask(BaseTask):
                         name="files_extracted",
                         passed=False,
                         points=0,
+                        max_points=5,
                         message=f"Extract directory is empty"
                     ))
             except Exception as e:
@@ -409,6 +417,7 @@ class ExtractArchiveTask(BaseTask):
                     name="files_extracted",
                     passed=False,
                     points=0,
+                    max_points=5,
                     message=f"Could not list directory: {e}"
                 ))
         else:
@@ -416,6 +425,7 @@ class ExtractArchiveTask(BaseTask):
                 name="extract_dir_exists",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Extract directory not found"
             ))
 
@@ -513,6 +523,7 @@ class IORedirectionTask(BaseTask):
                             name="has_content",
                             passed=False,
                             points=0,
+                            max_points=6,
                             message=f"Output file is empty"
                         ))
             except Exception as e:
@@ -520,6 +531,7 @@ class IORedirectionTask(BaseTask):
                     name="has_content",
                     passed=False,
                     points=0,
+                    max_points=6,
                     message=f"Could not read file: {e}"
                 ))
         else:
@@ -527,6 +539,7 @@ class IORedirectionTask(BaseTask):
                 name="output_exists",
                 passed=False,
                 points=0,
+                max_points=6,
                 message=f"Output file not found"
             ))
 

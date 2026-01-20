@@ -60,9 +60,9 @@ class VerifyLVExistsTask(BaseTask):
                 checks.append(ValidationCheck("lv_size", True, 5, f"Size correct: ~{actual_size}MB"))
                 total_points += 5
             else:
-                checks.append(ValidationCheck("lv_size", False, 0, f"Size incorrect: {actual_size}MB (expected {self.lv_size_mb}MB)"))
+                checks.append(ValidationCheck("lv_size", False, 0, f"Size incorrect: {actual_size}MB (expected {self.lv_size_mb}MB)", max_points=5))
         else:
-            checks.append(ValidationCheck("lv_exists", False, 0, f"Logical volume not found"))
+            checks.append(ValidationCheck("lv_exists", False, 0, f"Logical volume not found", max_points=5))
 
         passed = total_points >= (self.points * 0.7)
         return ValidationResult(self.id, passed, total_points, self.points, checks)
@@ -112,7 +112,7 @@ class CreatePVTask(BaseTask):
             checks.append(ValidationCheck("pv_exists", True, 6, f"Physical volume created on {self.device}"))
             total_points += 6
         else:
-            checks.append(ValidationCheck("pv_exists", False, 0, f"Physical volume not found on {self.device}"))
+            checks.append(ValidationCheck("pv_exists", False, 0, f"Physical volume not found on {self.device}", max_points=6))
 
         passed = total_points >= (self.points * 0.8)
         return ValidationResult(self.id, passed, total_points, self.points, checks)
@@ -169,7 +169,7 @@ class CreateVGTask(BaseTask):
             checks.append(ValidationCheck("vg_exists", True, 8, f"Volume group '{self.vg_name}' created"))
             total_points += 8
         else:
-            checks.append(ValidationCheck("vg_exists", False, 0, f"Volume group '{self.vg_name}' not found"))
+            checks.append(ValidationCheck("vg_exists", False, 0, f"Volume group '{self.vg_name}' not found", max_points=8))
 
         passed = total_points >= (self.points * 0.8)
         return ValidationResult(self.id, passed, total_points, self.points, checks)
@@ -229,9 +229,9 @@ class CreateLVTask(BaseTask):
                 checks.append(ValidationCheck("lv_size", True, 5, f"Size correct: ~{actual_size}MB"))
                 total_points += 5
             else:
-                checks.append(ValidationCheck("lv_size", False, 0, f"Size incorrect: {actual_size}MB (expected {self.lv_size_mb}MB)"))
+                checks.append(ValidationCheck("lv_size", False, 0, f"Size incorrect: {actual_size}MB (expected {self.lv_size_mb}MB)", max_points=5))
         else:
-            checks.append(ValidationCheck("lv_exists", False, 0, f"Logical volume not found"))
+            checks.append(ValidationCheck("lv_exists", False, 0, f"Logical volume not found", max_points=5))
 
         passed = total_points >= (self.points * 0.7)
         return ValidationResult(self.id, passed, total_points, self.points, checks)
@@ -301,9 +301,9 @@ class ExtendLVTask(BaseTask):
                 checks.append(ValidationCheck("lv_extended", True, 8, f"LV size is {actual_size}MB (extended)"))
                 total_points += 8
             else:
-                checks.append(ValidationCheck("lv_extended", False, 0, f"LV size is {actual_size}MB (may not be extended)"))
+                checks.append(ValidationCheck("lv_extended", False, 0, f"LV size is {actual_size}MB (may not be extended)", max_points=8))
         else:
-            checks.append(ValidationCheck("lv_exists", False, 0, f"LV not found"))
+            checks.append(ValidationCheck("lv_exists", False, 0, f"LV not found", max_points=4))
 
         passed = total_points >= (self.points * 0.6)
         return ValidationResult(self.id, passed, total_points, self.points, checks)
@@ -371,7 +371,7 @@ class LVMFullWorkflowTask(BaseTask):
             checks.append(ValidationCheck("pv_created", True, 3, "Physical volume created"))
             total_points += 3
         else:
-            checks.append(ValidationCheck("pv_created", False, 0, "PV not created"))
+            checks.append(ValidationCheck("pv_created", False, 0, "PV not created", max_points=3))
 
         # Check 2: VG exists (4 points)
         result = execute_safe(['vgs', '--noheadings', self.vg_name])
@@ -379,14 +379,14 @@ class LVMFullWorkflowTask(BaseTask):
             checks.append(ValidationCheck("vg_created", True, 4, f"Volume group '{self.vg_name}' created"))
             total_points += 4
         else:
-            checks.append(ValidationCheck("vg_created", False, 0, "VG not created"))
+            checks.append(ValidationCheck("vg_created", False, 0, "VG not created", max_points=4))
 
         # Check 3: LV exists with correct size (4 points)
         if validate_lv_exists(self.vg_name, self.lv_name):
             checks.append(ValidationCheck("lv_created", True, 4, "Logical volume created"))
             total_points += 4
         else:
-            checks.append(ValidationCheck("lv_created", False, 0, "LV not created"))
+            checks.append(ValidationCheck("lv_created", False, 0, "LV not created", max_points=4))
 
         # Check 4: Filesystem formatted (3 points)
         lv_path = f'/dev/{self.vg_name}/{self.lv_name}'
@@ -395,7 +395,7 @@ class LVMFullWorkflowTask(BaseTask):
             checks.append(ValidationCheck("fs_formatted", True, 3, f"Filesystem formatted as {self.fstype}"))
             total_points += 3
         else:
-            checks.append(ValidationCheck("fs_formatted", False, 0, f"Filesystem not formatted or wrong type"))
+            checks.append(ValidationCheck("fs_formatted", False, 0, f"Filesystem not formatted or wrong type", max_points=3))
 
         # Check 5: Mounted (3 points)
         mounts = get_mounted_devices()
@@ -404,7 +404,7 @@ class LVMFullWorkflowTask(BaseTask):
             checks.append(ValidationCheck("lv_mounted", True, 3, f"Mounted at {self.mount_point}"))
             total_points += 3
         else:
-            checks.append(ValidationCheck("lv_mounted", False, 0, "Not mounted"))
+            checks.append(ValidationCheck("lv_mounted", False, 0, "Not mounted", max_points=3))
 
         # Check 6: Persistent mount (3 points)
         from validators.file_validators import validate_file_contains
@@ -412,7 +412,7 @@ class LVMFullWorkflowTask(BaseTask):
             checks.append(ValidationCheck("persistent_mount", True, 3, "Entry in /etc/fstab"))
             total_points += 3
         else:
-            checks.append(ValidationCheck("persistent_mount", False, 0, "No fstab entry"))
+            checks.append(ValidationCheck("persistent_mount", False, 0, "No fstab entry", max_points=3))
 
         passed = total_points >= (self.points * 0.7)
         return ValidationResult(self.id, passed, total_points, self.points, checks)

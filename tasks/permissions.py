@@ -70,6 +70,7 @@ class SetFilePermissionsTask(BaseTask):
                 name="file_exists",
                 passed=False,
                 points=0,
+                max_points=1,
                 message=f"File not found: {self.file_path}"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -89,6 +90,7 @@ class SetFilePermissionsTask(BaseTask):
                 name="permissions",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Permissions incorrect: expected {self.permissions}, got {actual}"
             ))
 
@@ -152,6 +154,7 @@ class SetFileOwnershipTask(BaseTask):
                 name="file_exists",
                 passed=False,
                 points=0,
+                max_points=1,
                 message=f"File not found: {self.file_path}"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -171,6 +174,7 @@ class SetFileOwnershipTask(BaseTask):
                 name="correct_owner",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Owner incorrect: expected {self.owner}, got {actual_owner}"
             ))
 
@@ -189,6 +193,7 @@ class SetFileOwnershipTask(BaseTask):
                 name="correct_group",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Group incorrect: expected {self.group}, got {actual_group}"
             ))
 
@@ -252,6 +257,7 @@ class SetACLTask(BaseTask):
                 name="file_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"File not found: {self.file_path}"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -270,6 +276,7 @@ class SetACLTask(BaseTask):
                 name="acl_entry",
                 passed=False,
                 points=0,
+                max_points=6,
                 message=f"ACL not configured correctly for user {self.acl_user}"
             ))
 
@@ -339,6 +346,7 @@ class SetSpecialPermissionsTask(BaseTask):
                 name="file_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"File not found: {self.file_path}"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -358,6 +366,7 @@ class SetSpecialPermissionsTask(BaseTask):
                 name="special_permissions",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Permissions incorrect: expected {self.permissions}, got {actual}"
             ))
 

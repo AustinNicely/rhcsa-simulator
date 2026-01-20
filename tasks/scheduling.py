@@ -117,6 +117,7 @@ class CreateCronJobTask(BaseTask):
                     name="cron_entry",
                     passed=False,
                     points=0,
+                    max_points=10,
                     message=f"Cron job not found in crontab for user {self.username}"
                 ))
         else:
@@ -124,6 +125,7 @@ class CreateCronJobTask(BaseTask):
                 name="crontab_exists",
                 passed=False,
                 points=0,
+                max_points=10,
                 message=f"No crontab found for user {self.username}"
             ))
 
@@ -208,6 +210,7 @@ class CreateSystemCronTask(BaseTask):
                     name="command_present",
                     passed=False,
                     points=0,
+                    max_points=4,
                     message=f"Command not found in {cron_file}"
                 ))
 
@@ -225,6 +228,7 @@ class CreateSystemCronTask(BaseTask):
                     name="user_specified",
                     passed=False,
                     points=0,
+                    max_points=2,
                     message=f"User not found in {cron_file}"
                 ))
 
@@ -242,6 +246,7 @@ class CreateSystemCronTask(BaseTask):
                     name="schedule_correct",
                     passed=False,
                     points=0,
+                    max_points=2,
                     message=f"Schedule not found in {cron_file}"
                 ))
         else:
@@ -249,6 +254,7 @@ class CreateSystemCronTask(BaseTask):
                 name="file_exists",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Cron file {cron_file} not found"
             ))
 
@@ -326,6 +332,7 @@ class CreateAtJobTask(BaseTask):
                 name="atd_running",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"atd service is not running"
             ))
 
@@ -344,6 +351,7 @@ class CreateAtJobTask(BaseTask):
                 name="at_jobs_exist",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"No at jobs scheduled"
             ))
 
@@ -432,6 +440,7 @@ class CreateSystemdTimerTask(BaseTask):
                 name="service_file_exists",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Service file {service_path} not found"
             ))
 
@@ -449,6 +458,7 @@ class CreateSystemdTimerTask(BaseTask):
                 name="timer_file_exists",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Timer file {timer_path} not found"
             ))
 
@@ -467,6 +477,7 @@ class CreateSystemdTimerTask(BaseTask):
                 name="timer_enabled",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Timer is not enabled"
             ))
 
@@ -485,6 +496,7 @@ class CreateSystemdTimerTask(BaseTask):
                 name="timer_active",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Timer is not active"
             ))
 

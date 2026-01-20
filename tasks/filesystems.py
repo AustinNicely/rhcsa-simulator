@@ -83,6 +83,7 @@ class CreateFilesystemTask(BaseTask):
                 name="filesystem_type",
                 passed=False,
                 points=0,
+                max_points=6,
                 message=f"Filesystem type is {actual}, expected {self.fstype}"
             ))
 
@@ -151,6 +152,7 @@ class MountFilesystemTask(BaseTask):
                         name="correct_device",
                         passed=False,
                         points=0,
+                        max_points=4,
                         message=f"Wrong device: {mount['device']} (expected {self.device})"
                     ))
                 break
@@ -168,6 +170,7 @@ class MountFilesystemTask(BaseTask):
                 name="filesystem_mounted",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Filesystem not mounted at {self.mount_point}"
             ))
 
@@ -242,6 +245,7 @@ class PersistentMountTask(BaseTask):
                 name="currently_mounted",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Filesystem not currently mounted"
             ))
 
@@ -268,6 +272,7 @@ class PersistentMountTask(BaseTask):
                 name="fstab_entry",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"No persistent mount entry in /etc/fstab"
             ))
 
@@ -286,6 +291,7 @@ class PersistentMountTask(BaseTask):
                 name="filesystem_type",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Filesystem is {actual}, expected {self.fstype}"
             ))
 
@@ -304,6 +310,7 @@ class PersistentMountTask(BaseTask):
                 name="mount_point_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Mount point {self.mount_point} doesn't exist"
             ))
 
@@ -379,6 +386,7 @@ class ConfigureSwapTask(BaseTask):
                     name="swap_active",
                     passed=False,
                     points=0,
+                    max_points=5,
                     message=f"Swap is not active on {self.device}"
                 ))
 
@@ -405,6 +413,7 @@ class ConfigureSwapTask(BaseTask):
                 name="swap_persistent",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Swap not configured in /etc/fstab"
             ))
 
@@ -475,6 +484,7 @@ class ExtendFilesystemTask(BaseTask):
                 name="filesystem_type",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Filesystem type is {actual_fstype}, expected {self.fstype}"
             ))
 
@@ -508,6 +518,7 @@ class ExtendFilesystemTask(BaseTask):
                         name="filesystem_size",
                         passed=False,
                         points=0,
+                        max_points=7,
                         message=f"Filesystem size is {int(size_mb)}MB, expected ~{self.expected_size_mb}MB"
                     ))
             except Exception as e:
@@ -515,6 +526,7 @@ class ExtendFilesystemTask(BaseTask):
                     name="filesystem_size",
                     passed=False,
                     points=0,
+                    max_points=7,
                     message=f"Could not check filesystem size: {e}"
                 ))
         else:
@@ -522,6 +534,7 @@ class ExtendFilesystemTask(BaseTask):
                 name="filesystem_accessible",
                 passed=False,
                 points=0,
+                max_points=7,
                 message=f"Filesystem not mounted or not accessible"
             ))
 

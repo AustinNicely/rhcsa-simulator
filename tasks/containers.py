@@ -88,6 +88,7 @@ class PullContainerImageTask(BaseTask):
                     name="image_pulled",
                     passed=False,
                     points=0,
+                    max_points=6,
                     message=f"Image '{self.image_name}' not found locally"
                 ))
 
@@ -166,6 +167,7 @@ class RunContainerTask(BaseTask):
                     name="container_running",
                     passed=False,
                     points=0,
+                    max_points=6,
                     message=f"Container exists but is not running"
                 ))
         else:
@@ -173,6 +175,7 @@ class RunContainerTask(BaseTask):
                 name="container_exists",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Container '{self.container_name}' not found"
             ))
 
@@ -242,6 +245,7 @@ class PersistentContainerTask(BaseTask):
                 name="container_exists",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Container '{self.container_name}' not found"
             ))
 
@@ -259,6 +263,7 @@ class PersistentContainerTask(BaseTask):
                 name="container_running",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Container is not running"
             ))
 
@@ -294,6 +299,7 @@ class PersistentContainerTask(BaseTask):
                     name="systemd_service",
                     passed=False,
                     points=0,
+                    max_points=5,
                     message=f"Systemd service file not found"
                 ))
 
@@ -366,6 +372,7 @@ class ContainerVolumeTask(BaseTask):
                 name="host_dir_exists",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Host directory {self.host_path} not found"
             ))
 
@@ -383,6 +390,7 @@ class ContainerVolumeTask(BaseTask):
                 name="container_exists",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Container not found"
             ))
 
@@ -400,6 +408,7 @@ class ContainerVolumeTask(BaseTask):
                 name="container_running",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Container is not running"
             ))
 

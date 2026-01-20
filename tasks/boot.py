@@ -81,6 +81,7 @@ class SetDefaultTargetTask(BaseTask):
                 name="default_target",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Default target is '{current_target}', expected '{self.target}'"
             ))
 
@@ -142,6 +143,7 @@ class ModifyGrubTimeoutTask(BaseTask):
                 name="grub_timeout_set",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"GRUB timeout is {current_timeout}, expected {self.timeout}"
             ))
 
@@ -159,6 +161,7 @@ class ModifyGrubTimeoutTask(BaseTask):
                 name="grub_config_exists",
                 passed=False,
                 points=0,
+                max_points=4,
                 message="GRUB configuration not found or not regenerated"
             ))
 
@@ -241,6 +244,7 @@ class AddKernelParameterTask(BaseTask):
                 name="kernel_param_added",
                 passed=False,
                 points=0,
+                max_points=6,
                 message=f"Parameter '{self.parameter}' not found in GRUB_CMDLINE_LINUX. Current: {current_cmdline}"
             ))
 
@@ -258,6 +262,7 @@ class AddKernelParameterTask(BaseTask):
                 name="grub_config_regenerated",
                 passed=False,
                 points=0,
+                max_points=4,
                 message="GRUB configuration needs to be regenerated"
             ))
 
@@ -322,6 +327,7 @@ class RemoveKernelParameterTask(BaseTask):
                 name="kernel_param_removed",
                 passed=False,
                 points=0,
+                max_points=6,
                 message=f"Parameter '{self.parameter}' still present in GRUB_CMDLINE_LINUX"
             ))
 
@@ -339,6 +345,7 @@ class RemoveKernelParameterTask(BaseTask):
                 name="grub_config_regenerated",
                 passed=False,
                 points=0,
+                max_points=4,
                 message="GRUB configuration needs to be regenerated"
             ))
 
@@ -420,6 +427,7 @@ class BootTroubleshootingTask(BaseTask):
                 name="target_fixed",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Target is {current}, expected {self.target}"
             ))
 
@@ -438,6 +446,7 @@ class BootTroubleshootingTask(BaseTask):
                 name="timeout_fixed",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Timeout is {current}, expected {self.timeout}"
             ))
 
@@ -455,6 +464,7 @@ class BootTroubleshootingTask(BaseTask):
                 name="grub_regenerated",
                 passed=False,
                 points=0,
+                max_points=3,
                 message="GRUB configuration not regenerated"
             ))
 
@@ -525,6 +535,7 @@ class EmergencyBootTask(BaseTask):
                 name="normal_boot_configured",
                 passed=False,
                 points=0,
+                max_points=8,
                 message=f"Default target is {current_target}, should be multi-user or graphical"
             ))
 

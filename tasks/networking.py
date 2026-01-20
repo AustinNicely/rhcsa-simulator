@@ -82,6 +82,7 @@ class ConfigureStaticIPTask(BaseTask):
                 name="ip_address_set",
                 passed=False,
                 points=0,
+                max_points=6,
                 message=f"IP address is {actual_ip}, expected {self.ip_address}"
             ))
 
@@ -100,6 +101,7 @@ class ConfigureStaticIPTask(BaseTask):
                 name="interface_up",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Interface {self.interface} is {state}"
             ))
 
@@ -128,6 +130,7 @@ class ConfigureStaticIPTask(BaseTask):
                 name="persistent_config",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Connection {self.connection_name} not found"
             ))
 
@@ -191,6 +194,7 @@ class ConfigureDefaultGatewayTask(BaseTask):
                 name="gateway_set",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Default gateway is {current_gateway}, expected {self.gateway}"
             ))
 
@@ -209,6 +213,7 @@ class ConfigureDefaultGatewayTask(BaseTask):
                 name="gateway_persistent",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Gateway not configured persistently in connection"
             ))
 
@@ -286,6 +291,7 @@ class ConfigureDNSTask(BaseTask):
                 name="dns_configured",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"DNS servers not configured. Current: {current_dns}"
             ))
 
@@ -304,6 +310,7 @@ class ConfigureDNSTask(BaseTask):
                 name="dns_persistent",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"DNS not configured persistently in connection"
             ))
 
@@ -369,6 +376,7 @@ class SetHostnameTask(BaseTask):
                 name="current_hostname",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Hostname is {current_hostname}, expected {self.hostname}"
             ))
 
@@ -386,6 +394,7 @@ class SetHostnameTask(BaseTask):
                 name="persistent_hostname",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Hostname not in /etc/hostname"
             ))
 
@@ -466,6 +475,7 @@ class ConfigureNetworkFullTask(BaseTask):
                 name="ip_configured",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"IP is {actual_ip}, expected {self.ip_address}"
             ))
 
@@ -484,6 +494,7 @@ class ConfigureNetworkFullTask(BaseTask):
                 name="gateway_configured",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Gateway is {current_gateway}, expected {self.gateway}"
             ))
 
@@ -503,6 +514,7 @@ class ConfigureNetworkFullTask(BaseTask):
                 name="dns_configured",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"DNS not fully configured"
             ))
 
@@ -521,6 +533,7 @@ class ConfigureNetworkFullTask(BaseTask):
                 name="interface_up",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Interface is {state}"
             ))
 

@@ -74,6 +74,7 @@ class KillProcessTask(BaseTask):
                 name="process_killed",
                 passed=False,
                 points=0,
+                max_points=8,
                 message=f"Process '{self.process_name}' still running (PIDs: {', '.join(pids)})"
             ))
 
@@ -160,6 +161,7 @@ class AdjustProcessPriorityTask(BaseTask):
                     name="priority_adjusted",
                     passed=False,
                     points=0,
+                    max_points=10,
                     message=f"Nice value not correctly set for all '{self.process_name}' processes"
                 ))
         else:
@@ -167,6 +169,7 @@ class AdjustProcessPriorityTask(BaseTask):
                 name="process_exists",
                 passed=False,
                 points=0,
+                max_points=10,
                 message=f"Process '{self.process_name}' not found"
             ))
 
@@ -260,6 +263,7 @@ class StartProcessWithPriorityTask(BaseTask):
                             name="correct_priority",
                             passed=False,
                             points=0,
+                            max_points=5,
                             message=f"Nice value is {current_nice}, expected {self.nice_value}"
                         ))
                 except ValueError:
@@ -267,6 +271,7 @@ class StartProcessWithPriorityTask(BaseTask):
                         name="correct_priority",
                         passed=False,
                         points=0,
+                        max_points=5,
                         message=f"Could not determine nice value"
                     ))
         else:
@@ -274,6 +279,7 @@ class StartProcessWithPriorityTask(BaseTask):
                 name="process_running",
                 passed=False,
                 points=0,
+                max_points=5,
                 message=f"Process '{self.process_name}' is not running"
             ))
 
@@ -351,6 +357,7 @@ class FindProcessByUserTask(BaseTask):
                     name="user_processes_killed",
                     passed=False,
                     points=0,
+                    max_points=12,
                     message=f"User '{self.username}' still has {len(pids)} process(es) running"
                 ))
         else:
@@ -370,6 +377,7 @@ class FindProcessByUserTask(BaseTask):
                     name="user_exists",
                     passed=False,
                     points=0,
+                    max_points=12,
                     message=f"User '{self.username}' not found"
                 ))
 
