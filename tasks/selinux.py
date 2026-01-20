@@ -82,6 +82,7 @@ class SetSELinuxContextTask(BaseTask):
                 name="directory_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Directory '{self.directory}' not found"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -101,6 +102,7 @@ class SetSELinuxContextTask(BaseTask):
                 name="current_context",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Context mismatch: expected {self.context_type}, got {actual_type}"
             ))
 
@@ -119,6 +121,7 @@ class SetSELinuxContextTask(BaseTask):
                 name="persistent_context",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Persistent context not configured (check 'semanage fcontext -l')"
             ))
 
@@ -188,6 +191,7 @@ class SetSELinuxBooleanTask(BaseTask):
                 name="boolean_value",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Boolean value incorrect: expected {self.boolean_value}, got {actual_value}"
             ))
 
@@ -213,6 +217,7 @@ class SetSELinuxBooleanTask(BaseTask):
                     name="persistent_boolean",
                     passed=False,
                     points=0,
+                    max_points=3,
                     message=f"Boolean not persistently configured (use -P flag)"
                 ))
         else:
@@ -220,6 +225,7 @@ class SetSELinuxBooleanTask(BaseTask):
                 name="persistent_boolean",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Could not check persistent configuration"
             ))
 
@@ -279,6 +285,7 @@ class SetSELinuxModeTask(BaseTask):
                 name="current_mode",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"SELinux mode incorrect: expected {self.mode}, got {current_mode}"
             ))
 
@@ -299,6 +306,7 @@ class SetSELinuxModeTask(BaseTask):
                     name="persistent_mode",
                     passed=False,
                     points=0,
+                    max_points=3,
                     message=f"/etc/selinux/config not updated correctly"
                 ))
         else:
@@ -306,6 +314,7 @@ class SetSELinuxModeTask(BaseTask):
                 name="persistent_mode",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Could not verify /etc/selinux/config"
             ))
 

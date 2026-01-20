@@ -342,3 +342,282 @@ def print_divider(char="-", width=None):
         from utils.helpers import get_terminal_width
         width = get_terminal_width()
     print(char * width)
+
+
+# ============================================================================
+# ENHANCED DISPLAY FUNCTIONS
+# ============================================================================
+
+def print_check_result_detailed(name, passed, message, points, max_points,
+                                 explanation=None, how_to_fix=None):
+    """
+    Print a detailed validation check result with explanation.
+
+    Args:
+        name: Check name
+        passed: Whether check passed
+        message: Result message
+        points: Points earned
+        max_points: Maximum points for this check
+        explanation: Optional explanation of what was checked
+        how_to_fix: Optional fix suggestion for failures
+    """
+    if passed:
+        symbol = colorize("✓", Colors.GREEN)
+        points_color = Colors.GREEN
+    else:
+        symbol = colorize("✗", Colors.RED)
+        points_color = Colors.RED
+
+    points_str = colorize(f"({points}/{max_points} pts)", points_color)
+
+    print(f"  {symbol} {message} {points_str}")
+
+    if explanation:
+        print(f"      {dim(explanation)}")
+
+    if not passed and how_to_fix:
+        print(f"      {warning('Fix:')} {how_to_fix}")
+
+
+def print_partial_credit_bar(earned, maximum, width=20):
+    """
+    Print a visual partial credit bar.
+
+    Args:
+        earned: Points earned
+        maximum: Maximum points
+        width: Bar width
+    """
+    if maximum == 0:
+        percentage = 0
+    else:
+        percentage = earned / maximum
+
+    filled = int(width * percentage)
+    empty = width - filled
+
+    # Color based on percentage
+    if percentage >= 0.7:
+        bar_color = Colors.GREEN
+    elif percentage >= 0.4:
+        bar_color = Colors.YELLOW
+    else:
+        bar_color = Colors.RED
+
+    bar = colorize("█" * filled, bar_color) + dim("░" * empty)
+    pct_str = f"{percentage*100:.0f}%"
+
+    print(f"    [{bar}] {earned}/{maximum} ({pct_str})")
+
+
+def print_task_result_card(task_id, category, passed, score, max_score, checks):
+    """
+    Print a detailed task result card.
+
+    Args:
+        task_id: Task identifier
+        category: Task category
+        passed: Whether task passed
+        score: Score earned
+        max_score: Maximum score
+        checks: List of (name, passed, points, max_points) tuples
+    """
+    status = success("PASSED") if passed else error("FAILED")
+    percentage = (score / max_score * 100) if max_score > 0 else 0
+
+    print()
+    print(f"┌{'─' * 58}┐")
+    print(f"│ {bold(task_id):<40} {status:>15} │")
+    print(f"│ {dim(format_category_name(category)):<56} │")
+    print(f"├{'─' * 58}┤")
+
+    for check_name, check_passed, points, max_points in checks:
+        symbol = success("✓") if check_passed else error("✗")
+        pts = f"{points}/{max_points}"
+        # Truncate check name if too long
+        name_display = check_name[:35] + "..." if len(check_name) > 38 else check_name
+        print(f"│   {symbol} {name_display:<40} {pts:>10} │")
+
+    print(f"├{'─' * 58}┤")
+    print(f"│ {'Total Score:':<45} {bold(f'{score}/{max_score}'):>10} │")
+    print(f"│ {'Percentage:':<45} {bold(f'{percentage:.0f}%'):>10} │")
+    print(f"└{'─' * 58}┘")
+
+
+def print_recommendation_card(recommendation):
+    """
+    Print a recommendation card.
+
+    Args:
+        recommendation: Dict with type, target, reason, priority, suggestion
+    """
+    priority = recommendation.get('priority', 'medium')
+
+    if priority == 'high':
+        border_color = Colors.RED
+        priority_badge = error("[HIGH]")
+    elif priority == 'medium':
+        border_color = Colors.YELLOW
+        priority_badge = warning("[MEDIUM]")
+    else:
+        border_color = Colors.GREEN
+        priority_badge = success("[LOW]")
+
+    print()
+    print(colorize(f"┌{'─' * 56}┐", border_color))
+    print(colorize(f"│", border_color) + f" {priority_badge} {recommendation.get('suggestion', '')[:43]:<43}" + colorize(" │", border_color))
+    print(colorize(f"│", border_color) + f" {dim(recommendation.get('reason', '')[:54]):<54}" + colorize(" │", border_color))
+    print(colorize(f"└{'─' * 56}┘", border_color))
+
+
+def print_scenario_progress(scenario_title, current_step, total_steps, earned_points, total_points):
+    """
+    Print scenario progress display.
+
+    Args:
+        scenario_title: Title of the scenario
+        current_step: Current step number
+        total_steps: Total number of steps
+        earned_points: Points earned so far
+        total_points: Total possible points
+    """
+    step_pct = (current_step / total_steps * 100) if total_steps > 0 else 0
+    points_pct = (earned_points / total_points * 100) if total_points > 0 else 0
+
+    print()
+    print(f"┌{'─' * 58}┐")
+    print(f"│ {bold(scenario_title):<56} │")
+    print(f"├{'─' * 58}┤")
+    print(f"│ Step Progress: {current_step}/{total_steps} ({step_pct:.0f}%){' ' * 27} │")
+
+    # Step progress bar
+    step_filled = int(40 * current_step / total_steps) if total_steps > 0 else 0
+    step_bar = success("█" * step_filled) + dim("░" * (40 - step_filled))
+    print(f"│   [{step_bar}]   │")
+
+    print(f"│ Points: {earned_points}/{total_points} ({points_pct:.0f}%){' ' * 33} │")
+
+    # Points progress bar
+    points_filled = int(40 * earned_points / total_points) if total_points > 0 else 0
+    if points_pct >= 70:
+        points_bar = success("█" * points_filled)
+    elif points_pct >= 50:
+        points_bar = warning("█" * points_filled)
+    else:
+        points_bar = error("█" * points_filled)
+    points_bar += dim("░" * (40 - points_filled))
+    print(f"│   [{points_bar}]   │")
+
+    print(f"└{'─' * 58}┘")
+
+
+def print_weak_area_summary(weak_areas):
+    """
+    Print a summary of weak areas.
+
+    Args:
+        weak_areas: List of dicts with category, success_rate, attempts, failures
+    """
+    if not weak_areas:
+        print(success("No significant weak areas detected!"))
+        return
+
+    print()
+    print(bold("Areas Needing Improvement:"))
+    print()
+
+    for area in weak_areas:
+        cat = format_category_name(area['category'])
+        rate = area['success_rate'] * 100
+        attempts = area['attempts']
+        failures = area['failures']
+
+        # Color based on success rate
+        if rate >= 70:
+            rate_str = success(f"{rate:.0f}%")
+        elif rate >= 50:
+            rate_str = warning(f"{rate:.0f}%")
+        else:
+            rate_str = error(f"{rate:.0f}%")
+
+        print(f"  • {cat}")
+        print(f"    Success Rate: {rate_str} ({attempts} attempts, {failures} failures)")
+
+        # Visual bar
+        bar_width = 30
+        filled = int(bar_width * area['success_rate'])
+        bar = ("█" * filled) + ("░" * (bar_width - filled))
+        if rate >= 70:
+            bar = success(bar)
+        elif rate >= 50:
+            bar = warning(bar)
+        else:
+            bar = error(bar)
+        print(f"    [{bar}]")
+        print()
+
+
+def print_explanation(check_name, passed, explanation_data):
+    """
+    Print a detailed explanation for a check result.
+
+    Args:
+        check_name: Name of the check
+        passed: Whether check passed
+        explanation_data: Dict with explanation, how_checked, why_matters, common_issues
+    """
+    print()
+    header = success("✓ Why this passed:") if passed else error("✗ Why this failed:")
+    print(f"  {header}")
+
+    if 'explanation' in explanation_data:
+        print(f"    {explanation_data['explanation']}")
+
+    if 'how_checked' in explanation_data and explanation_data['how_checked']:
+        print(f"    {dim('Verified by:')} {explanation_data['how_checked']}")
+
+    if 'why_matters' in explanation_data and explanation_data['why_matters']:
+        print(f"    {dim('Why it matters:')} {explanation_data['why_matters']}")
+
+    if not passed and 'common_issues' in explanation_data:
+        print(f"    {warning('Common issues:')}")
+        for issue in explanation_data['common_issues']:
+            print(f"      • {issue}")
+
+
+def print_diff(expected, actual, label="Configuration"):
+    """
+    Print a diff-style comparison.
+
+    Args:
+        expected: Expected content/value
+        actual: Actual content/value
+        label: Label for the comparison
+    """
+    print()
+    print(f"  {bold(label)} Comparison:")
+    print(f"    {error('- Expected:')} {expected}")
+    print(f"    {success('+ Actual:  ')} {actual}")
+
+
+def print_timer_status(remaining_str, is_critical=False, is_warning=False):
+    """
+    Print timer status.
+
+    Args:
+        remaining_str: Formatted remaining time string
+        is_critical: True if time is critical (< 5 min)
+        is_warning: True if time is warning (< 15 min)
+    """
+    if is_critical:
+        icon = "⚠️ "
+        time_display = error(remaining_str)
+    elif is_warning:
+        icon = "⏰ "
+        time_display = warning(remaining_str)
+    else:
+        icon = "⏱  "
+        time_display = success(remaining_str)
+
+    print(f"  {icon}{time_display} remaining")

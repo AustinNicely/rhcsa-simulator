@@ -69,6 +69,7 @@ class EnableStartServiceTask(BaseTask):
                 name="service_active",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Service '{self.service_name}' is not running"
             ))
 
@@ -86,6 +87,7 @@ class EnableStartServiceTask(BaseTask):
                 name="service_enabled",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Service '{self.service_name}' is not enabled at boot"
             ))
 
@@ -144,6 +146,7 @@ class DisableStopServiceTask(BaseTask):
                 name="service_inactive",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Service '{self.service_name}' is still running"
             ))
 
@@ -161,6 +164,7 @@ class DisableStopServiceTask(BaseTask):
                 name="service_disabled",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Service '{self.service_name}' is still enabled"
             ))
 
@@ -223,6 +227,7 @@ class RestartServiceTask(BaseTask):
                 name="service_exists",
                 passed=False,
                 points=0,
+                max_points=1,
                 message=f"Service '{self.service_name}' not found"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -241,6 +246,7 @@ class RestartServiceTask(BaseTask):
                 name="service_active",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Service is not running (state: {status['state']})"
             ))
 
@@ -258,6 +264,7 @@ class RestartServiceTask(BaseTask):
                 name="service_enabled",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Service is not enabled at boot"
             ))
 

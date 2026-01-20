@@ -175,8 +175,8 @@ class PracticeSession:
                 check.name,
                 check.passed,
                 check.message,
-                check.points if check.passed else 0,
-                check.points
+                check.points,
+                check.max_points
             )
             if not check.passed:
                 self._show_fix_suggestion(check, task)

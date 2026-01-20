@@ -193,8 +193,8 @@ class ExamSession:
                 check.name,
                 check.passed,
                 check.message,
-                check.points if check.passed else 0,
-                check.points
+                check.points,
+                check.max_points
             )
 
         # Display summary

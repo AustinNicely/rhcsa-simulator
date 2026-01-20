@@ -71,6 +71,7 @@ class CreateUserTask(BaseTask):
                 name="user_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"User '{self.username}' does not exist"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -90,6 +91,7 @@ class CreateUserTask(BaseTask):
                 name="correct_uid",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"UID mismatch: expected {self.uid}, got {actual_uid}"
             ))
 
@@ -108,6 +110,7 @@ class CreateUserTask(BaseTask):
                 name="home_directory",
                 passed=False,
                 points=0,
+                max_points=1,
                 message=f"Home directory missing: {home_dir}"
             ))
 
@@ -174,6 +177,7 @@ class CreateUserWithGroupsTask(BaseTask):
                 name="user_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"User '{self.username}' does not exist"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -193,6 +197,7 @@ class CreateUserWithGroupsTask(BaseTask):
                 name="correct_uid",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"UID mismatch: expected {self.uid}, got {actual_uid}"
             ))
 
@@ -214,6 +219,7 @@ class CreateUserWithGroupsTask(BaseTask):
                 name="correct_groups",
                 passed=False,
                 points=0,
+                max_points=4,
                 message=f"Missing groups: {', '.join(missing)}"
             ))
 
@@ -274,6 +280,7 @@ class ConfigureSudoTask(BaseTask):
                 name="user_exists",
                 passed=False,
                 points=0,
+                max_points=1,
                 message=f"User '{self.username}' does not exist"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -293,6 +300,7 @@ class ConfigureSudoTask(BaseTask):
                 name="sudo_file_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Sudo configuration file not found in /etc/sudoers.d/"
             ))
 
@@ -310,6 +318,7 @@ class ConfigureSudoTask(BaseTask):
                 name="sudo_access",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Sudo access not working"
             ))
 
@@ -367,6 +376,7 @@ class CreateGroupTask(BaseTask):
                 name="group_exists",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"Group '{self.groupname}' does not exist"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -386,6 +396,7 @@ class CreateGroupTask(BaseTask):
                 name="correct_gid",
                 passed=False,
                 points=0,
+                max_points=2,
                 message=f"GID mismatch: expected {self.gid}, got {actual_gid}"
             ))
 
@@ -443,6 +454,7 @@ class ModifyUserShellTask(BaseTask):
                 name="user_exists",
                 passed=False,
                 points=0,
+                max_points=1,
                 message=f"User '{self.username}' does not exist"
             ))
             return ValidationResult(self.id, False, total_points, self.points, checks)
@@ -462,6 +474,7 @@ class ModifyUserShellTask(BaseTask):
                 name="correct_shell",
                 passed=False,
                 points=0,
+                max_points=3,
                 message=f"Shell mismatch: expected {self.shell}, got {actual_shell}"
             ))
 

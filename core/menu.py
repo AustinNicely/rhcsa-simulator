@@ -32,15 +32,22 @@ class MenuSystem:
             print(fmt.dim("=== Testing Modes ==="))
             fmt.print_menu_option(4, "Exam Mode", "Take a full mock RHCSA exam (15-20 tasks)")
             fmt.print_menu_option(5, "Practice Mode", "Practice specific task categories")
+            fmt.print_menu_option(6, "Scenario Mode", "Multi-step real-world scenarios [NEW]")
+            fmt.print_menu_option(7, "Troubleshooting", "Diagnose & fix broken systems [NEW]")
             print()
-            print(fmt.dim("=== Progress & Help ==="))
-            fmt.print_menu_option(6, "View Progress", "See your exam history and statistics")
-            fmt.print_menu_option(7, "Task Statistics", "View available tasks by category")
-            fmt.print_menu_option(8, "Help", "How to use this simulator")
-            fmt.print_menu_option(9, "Exit", "Quit the simulator")
+            print(fmt.dim("=== Progress & Analytics ==="))
+            fmt.print_menu_option(8, "View Progress", "See your exam history and statistics")
+            fmt.print_menu_option(9, "Weak Areas", "Analyze weak spots & get recommendations [NEW]")
+            fmt.print_menu_option(10, "Bookmarks", "Manage saved tasks for later [NEW]")
+            fmt.print_menu_option(11, "Export Report", "Generate PDF/HTML progress report [NEW]")
+            print()
+            print(fmt.dim("=== Help & Info ==="))
+            fmt.print_menu_option(12, "Task Statistics", "View available tasks by category")
+            fmt.print_menu_option(13, "Help", "How to use this simulator")
+            fmt.print_menu_option(0, "Exit", "Quit the simulator")
             print()
 
-            choice = input("Select an option [1-9]: ").strip()
+            choice = input("Select an option: ").strip()
 
             if choice == '1':
                 return 'learn'
@@ -53,15 +60,25 @@ class MenuSystem:
             elif choice == '5':
                 return 'practice'
             elif choice == '6':
-                return 'progress'
+                return 'scenario'
             elif choice == '7':
-                return 'stats'
+                return 'troubleshoot'
             elif choice == '8':
-                return 'help'
+                return 'progress'
             elif choice == '9':
+                return 'weak_areas'
+            elif choice == '10':
+                return 'bookmarks'
+            elif choice == '11':
+                return 'export'
+            elif choice == '12':
+                return 'stats'
+            elif choice == '13':
+                return 'help'
+            elif choice == '0':
                 return 'exit'
             else:
-                print(fmt.error("Invalid selection. Please choose 1-9."))
+                print(fmt.error("Invalid selection."))
                 input("Press Enter to continue...")
 
     def _print_header(self):
@@ -176,6 +193,142 @@ For more information, visit: https://www.redhat.com/rhcsa
 
         # Print statistics
         TaskRegistry.print_statistics()
+
+        print()
+        input("Press Enter to return to menu...")
+
+    def show_weak_areas(self):
+        """Show weak areas analysis and recommendations."""
+        from core.bookmarks import get_weak_area_analyzer
+
+        fmt.clear_screen()
+        fmt.print_header("WEAK AREA ANALYSIS")
+
+        analyzer = get_weak_area_analyzer()
+        report = analyzer.get_summary_report()
+
+        # Overall stats
+        print(fmt.bold("Overall Performance:"))
+        print(f"  Total Attempts: {report['total_attempts']}")
+        print(f"  Success Rate: {report['overall_success_rate']*100:.1f}%")
+        print(f"  Score Rate: {report['overall_score_rate']*100:.1f}%")
+        print(f"  Categories Practiced: {report['categories_practiced']}")
+        print()
+
+        # Weak areas
+        if report['weak_categories']:
+            fmt.print_weak_area_summary(report['weak_categories'])
+        else:
+            print(fmt.success("No significant weak areas detected!"))
+            print("Keep practicing to gather more data.")
+
+        print()
+
+        # Recommendations
+        if report['recommendations']:
+            print(fmt.bold("Recommendations:"))
+            for rec in report['recommendations']:
+                fmt.print_recommendation_card(rec)
+
+        print()
+        input("Press Enter to return to menu...")
+
+    def show_bookmarks(self):
+        """Show and manage bookmarks."""
+        from core.bookmarks import get_bookmark_manager
+
+        fmt.clear_screen()
+        fmt.print_header("BOOKMARKS")
+
+        manager = get_bookmark_manager()
+        bookmarks = manager.get_all()
+
+        if not bookmarks:
+            print("No bookmarks saved yet.")
+            print()
+            print("You can bookmark tasks during practice sessions")
+            print("to revisit them later.")
+        else:
+            print(fmt.bold(f"Saved Bookmarks ({len(bookmarks)}):"))
+            print()
+
+            for i, bm in enumerate(bookmarks, 1):
+                print(f"  {fmt.bold(str(i) + '.')} {bm.task_id}")
+                print(f"      Category: {fmt.format_category_name(bm.category)}")
+                print(f"      Difficulty: {fmt.format_difficulty(bm.difficulty)}")
+                if bm.note:
+                    print(f"      Note: {fmt.dim(bm.note)}")
+                print()
+
+            # Options
+            print()
+            print("Options:")
+            print("  C - Clear all bookmarks")
+            print("  R - Return to menu")
+            print()
+
+            choice = input("Select option: ").strip().lower()
+            if choice == 'c':
+                from utils.helpers import confirm_action
+                if confirm_action("Clear all bookmarks?", default=False):
+                    manager.clear()
+                    print(fmt.success("Bookmarks cleared."))
+
+        print()
+        input("Press Enter to return to menu...")
+
+    def export_report(self):
+        """Export progress report."""
+        from core.export import get_report_generator
+        from core.bookmarks import get_weak_area_analyzer
+        from core.mistakes_tracker import get_mistakes_tracker
+
+        fmt.clear_screen()
+        fmt.print_header("EXPORT REPORT")
+
+        print("Generate a progress report in various formats.")
+        print()
+        print("Available formats:")
+        print("  1. Text file (.txt)")
+        print("  2. HTML file (.html)")
+        print("  3. PDF file (.pdf) - requires reportlab")
+        print("  4. Cancel")
+        print()
+
+        choice = input("Select format [1-4]: ").strip()
+
+        if choice == '4':
+            return
+
+        format_map = {'1': 'text', '2': 'html', '3': 'pdf'}
+        if choice not in format_map:
+            print(fmt.error("Invalid selection"))
+            input("Press Enter to continue...")
+            return
+
+        fmt_choice = format_map[choice]
+
+        print()
+        print("Generating report...")
+
+        try:
+            generator = get_report_generator()
+            analyzer = get_weak_area_analyzer()
+            tracker = get_mistakes_tracker()
+
+            perf_data = analyzer.get_summary_report()
+            mistakes_data = {'patterns': tracker.get_mistake_patterns()}
+
+            filepath = generator.generate_progress_report(
+                perf_data, mistakes_data, format=fmt_choice
+            )
+
+            print()
+            print(fmt.success(f"Report generated successfully!"))
+            print(f"  Location: {filepath}")
+        except Exception as e:
+            print()
+            print(fmt.error(f"Error generating report: {e}"))
 
         print()
         input("Press Enter to return to menu...")

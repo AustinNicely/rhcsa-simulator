@@ -19,7 +19,13 @@ class ValidationCheck:
     passed: bool
     points: int
     message: str
+    max_points: Optional[int] = None
     details: Optional[str] = None
+
+    def __post_init__(self):
+        """Set max_points to points if not specified (for passed checks)."""
+        if self.max_points is None:
+            self.max_points = self.points
 
     def to_dict(self):
         """Convert to dictionary."""
@@ -27,6 +33,7 @@ class ValidationCheck:
             'name': self.name,
             'passed': self.passed,
             'points': self.points,
+            'max_points': self.max_points,
             'message': self.message,
             'details': self.details
         }
