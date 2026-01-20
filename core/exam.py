@@ -107,7 +107,7 @@ class ExamSession:
 
         total_points = sum(task.points for task in self.tasks)
 
-        for i, task in enumerate(self, 1):
+        for i, task in enumerate(self.tasks, 1):
             fmt.print_task(i, task.description, task.points)
 
         print()
