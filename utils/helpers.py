@@ -238,3 +238,223 @@ def clamp(value, min_val, max_val):
         Clamped value
     """
     return max(min_val, min(value, max_val))
+
+
+# =============================================================================
+# LVM Practice Device Helpers
+# =============================================================================
+
+def get_available_block_devices():
+    """
+    Get list of available unused block devices.
+
+    Returns:
+        list: List of device paths (e.g., ['/dev/vdb', '/dev/sdc'])
+    """
+    import subprocess
+
+    try:
+        # Get all block devices
+        result = subprocess.run(
+            ['lsblk', '-dpno', 'NAME,TYPE,MOUNTPOINT'],
+            capture_output=True, text=True, timeout=10
+        )
+
+        if result.returncode != 0:
+            return []
+
+        available = []
+        for line in result.stdout.strip().split('\n'):
+            if not line.strip():
+                continue
+            parts = line.split()
+            if len(parts) >= 2:
+                device = parts[0]
+                dtype = parts[1]
+                mountpoint = parts[2] if len(parts) > 2 else ''
+
+                # Skip if it's mounted or is a loop/rom device
+                if dtype == 'disk' and not mountpoint:
+                    # Skip the root disk (usually vda, sda, nvme0n1)
+                    if not any(x in device for x in ['vda', 'sda', 'nvme0n1', 'xvda']):
+                        # Check if it has partitions in use
+                        part_check = subprocess.run(
+                            ['lsblk', '-no', 'MOUNTPOINT', device],
+                            capture_output=True, text=True, timeout=5
+                        )
+                        if not part_check.stdout.strip():
+                            available.append(device)
+
+        return available
+    except Exception as e:
+        return []
+
+
+def get_loop_devices():
+    """
+    Get list of loop devices created for LVM practice.
+
+    Returns:
+        list: List of loop device paths
+    """
+    import subprocess
+    import os
+
+    loop_dir = '/var/lib/rhcsa-simulator/loops'
+    if not os.path.exists(loop_dir):
+        return []
+
+    devices = []
+    try:
+        result = subprocess.run(
+            ['losetup', '-a'],
+            capture_output=True, text=True, timeout=10
+        )
+        for line in result.stdout.strip().split('\n'):
+            if line and loop_dir in line:
+                device = line.split(':')[0]
+                devices.append(device)
+    except:
+        pass
+
+    return devices
+
+
+def create_practice_devices(count=2, size_mb=500):
+    """
+    Create loop devices for LVM practice.
+
+    Args:
+        count: Number of devices to create (default: 2)
+        size_mb: Size of each device in MB (default: 500)
+
+    Returns:
+        list: List of created loop device paths
+    """
+    import subprocess
+    import os
+
+    loop_dir = '/var/lib/rhcsa-simulator/loops'
+    os.makedirs(loop_dir, exist_ok=True)
+
+    created_devices = []
+
+    for i in range(count):
+        img_file = f'{loop_dir}/disk{i}.img'
+
+        # Create sparse file
+        try:
+            # Remove if exists
+            if os.path.exists(img_file):
+                # Check if already attached
+                result = subprocess.run(
+                    ['losetup', '-j', img_file],
+                    capture_output=True, text=True, timeout=5
+                )
+                if result.stdout.strip():
+                    # Already attached, get the device
+                    device = result.stdout.split(':')[0]
+                    created_devices.append(device)
+                    continue
+
+            # Create new sparse file
+            subprocess.run(
+                ['dd', 'if=/dev/zero', f'of={img_file}', 'bs=1M', f'count={size_mb}'],
+                capture_output=True, timeout=60
+            )
+
+            # Attach to loop device
+            result = subprocess.run(
+                ['losetup', '-f', '--show', img_file],
+                capture_output=True, text=True, timeout=10
+            )
+
+            if result.returncode == 0:
+                device = result.stdout.strip()
+                created_devices.append(device)
+        except Exception as e:
+            print(f"Error creating practice device: {e}")
+
+    return created_devices
+
+
+def cleanup_practice_devices():
+    """
+    Clean up loop devices created for LVM practice.
+    Removes LVM structures, detaches loops, and deletes files.
+
+    Returns:
+        bool: True if cleanup successful
+    """
+    import subprocess
+    import os
+
+    loop_dir = '/var/lib/rhcsa-simulator/loops'
+
+    try:
+        # Get all our loop devices
+        devices = get_loop_devices()
+
+        for device in devices:
+            # Remove any LVM structures first
+            subprocess.run(['pvremove', '-ff', '-y', device],
+                         capture_output=True, timeout=10)
+
+            # Detach loop device
+            subprocess.run(['losetup', '-d', device],
+                         capture_output=True, timeout=10)
+
+        # Remove image files
+        if os.path.exists(loop_dir):
+            for f in os.listdir(loop_dir):
+                if f.endswith('.img'):
+                    os.remove(os.path.join(loop_dir, f))
+
+        return True
+    except Exception as e:
+        print(f"Error cleaning up: {e}")
+        return False
+
+
+def get_practice_device():
+    """
+    Get a device suitable for LVM practice.
+    First checks for real unused devices, then falls back to loop devices.
+
+    Returns:
+        str: Device path or None if none available
+    """
+    # First try real devices
+    real_devices = get_available_block_devices()
+    if real_devices:
+        return real_devices[0]
+
+    # Fall back to loop devices
+    loop_devices = get_loop_devices()
+    if loop_devices:
+        return loop_devices[0]
+
+    # Create loop devices if needed
+    created = create_practice_devices(count=2, size_mb=500)
+    if created:
+        return created[0]
+
+    return None
+
+
+def get_all_practice_devices():
+    """
+    Get all devices available for LVM practice.
+
+    Returns:
+        list: List of device paths
+    """
+    devices = []
+
+    # Real devices first
+    devices.extend(get_available_block_devices())
+
+    # Then loop devices
+    devices.extend(get_loop_devices())
+
+    return devices

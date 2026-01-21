@@ -43,7 +43,8 @@ class MenuSystem:
             print()
             print(fmt.dim("=== Help & Info ==="))
             fmt.print_menu_option(12, "Task Statistics", "View available tasks by category")
-            fmt.print_menu_option(13, "Help", "How to use this simulator")
+            fmt.print_menu_option(13, "Setup Practice Disks", "Create/manage loop devices for LVM practice")
+            fmt.print_menu_option(14, "Help", "How to use this simulator")
             fmt.print_menu_option(0, "Exit", "Quit the simulator")
             print()
 
@@ -74,6 +75,8 @@ class MenuSystem:
             elif choice == '12':
                 return 'stats'
             elif choice == '13':
+                return 'setup_disks'
+            elif choice == '14':
                 return 'help'
             elif choice == '0':
                 return 'exit'
@@ -329,6 +332,86 @@ For more information, visit: https://www.redhat.com/rhcsa
         except Exception as e:
             print()
             print(fmt.error(f"Error generating report: {e}"))
+
+        print()
+        input("Press Enter to return to menu...")
+
+    def setup_practice_disks(self):
+        """Set up or manage practice loop devices for LVM."""
+        from utils.helpers import (
+            get_available_block_devices, get_loop_devices,
+            create_practice_devices, cleanup_practice_devices
+        )
+
+        fmt.clear_screen()
+        fmt.print_header("PRACTICE DISK SETUP")
+
+        print("This tool creates virtual disks (loop devices) for LVM practice.")
+        print("No real disks required!")
+        print()
+
+        # Show current status
+        print(fmt.bold("Current Status:"))
+        real_devices = get_available_block_devices()
+        loop_devices = get_loop_devices()
+
+        if real_devices:
+            print(f"  Real disks available: {', '.join(real_devices)}")
+        else:
+            print(f"  Real disks available: None")
+
+        if loop_devices:
+            print(f"  Practice disks (loop): {', '.join(loop_devices)}")
+        else:
+            print(f"  Practice disks (loop): None")
+
+        print()
+        print(fmt.bold("Options:"))
+        print("  1. Create practice disks (2 x 500MB)")
+        print("  2. Create custom practice disks")
+        print("  3. Clean up all practice disks")
+        print("  4. Return to menu")
+        print()
+
+        choice = input("Select option [1]: ").strip() or '1'
+
+        if choice == '1':
+            print()
+            print("Creating 2 x 500MB practice disks...")
+            devices = create_practice_devices(count=2, size_mb=500)
+            if devices:
+                print(fmt.success(f"Created devices: {', '.join(devices)}"))
+                print()
+                print("You can now use these for LVM practice:")
+                for dev in devices:
+                    print(f"  - {dev}")
+            else:
+                print(fmt.error("Failed to create practice disks"))
+
+        elif choice == '2':
+            try:
+                count = int(input("Number of disks [2]: ").strip() or '2')
+                size = int(input("Size per disk in MB [500]: ").strip() or '500')
+                print()
+                print(f"Creating {count} x {size}MB practice disks...")
+                devices = create_practice_devices(count=count, size_mb=size)
+                if devices:
+                    print(fmt.success(f"Created devices: {', '.join(devices)}"))
+                else:
+                    print(fmt.error("Failed to create practice disks"))
+            except ValueError:
+                print(fmt.error("Invalid input"))
+
+        elif choice == '3':
+            from utils.helpers import confirm_action
+            print()
+            print(fmt.warning("This will remove all LVM structures on practice disks!"))
+            if confirm_action("Are you sure?", default=False):
+                print("Cleaning up practice disks...")
+                if cleanup_practice_devices():
+                    print(fmt.success("Practice disks cleaned up"))
+                else:
+                    print(fmt.error("Cleanup failed"))
 
         print()
         input("Press Enter to return to menu...")

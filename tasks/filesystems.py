@@ -13,6 +13,7 @@ from validators.system_validators import (
     validate_persistent_mount, validate_swap_active, get_total_swap
 )
 from validators.file_validators import validate_file_contains
+from utils.helpers import get_practice_device
 
 
 logger = logging.getLogger(__name__)

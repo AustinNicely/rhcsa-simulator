@@ -90,6 +90,9 @@ def main():
             elif choice == 'stats':
                 menu.show_stats()
 
+            elif choice == 'setup_disks':
+                menu.setup_practice_disks()
+
             elif choice == 'help':
                 menu.show_help()
 

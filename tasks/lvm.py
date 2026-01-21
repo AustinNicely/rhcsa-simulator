@@ -7,6 +7,7 @@ from tasks.base import BaseTask
 from tasks.registry import TaskRegistry
 from core.validator import ValidationCheck, ValidationResult
 from validators.system_validators import validate_lv_exists, get_lv_size_mb
+from utils.helpers import get_practice_device, get_all_practice_devices
 
 
 @TaskRegistry.register("lvm")
@@ -82,7 +83,12 @@ class CreatePVTask(BaseTask):
         self.device = None
 
     def generate(self, **params):
-        self.device = params.get('device', '/dev/vdb')
+        # Use provided device, or detect an available one
+        self.device = params.get('device')
+        if not self.device:
+            self.device = get_practice_device()
+        if not self.device:
+            self.device = '/dev/vdb'  # Fallback for display
 
         self.description = (
             f"Create a physical volume:\n"
@@ -134,7 +140,11 @@ class CreateVGTask(BaseTask):
 
     def generate(self, **params):
         self.vg_name = params.get('vg_name', f'vg_data{random.randint(1,99)}')
-        self.pv_devices = params.get('devices', ['/dev/vdb'])
+        self.pv_devices = params.get('devices')
+        if not self.pv_devices:
+            # Detect available device
+            device = get_practice_device()
+            self.pv_devices = [device] if device else ['/dev/vdb']
         if isinstance(self.pv_devices, str):
             self.pv_devices = [self.pv_devices]
 
@@ -328,7 +338,13 @@ class LVMFullWorkflowTask(BaseTask):
         self.fstype = None
 
     def generate(self, **params):
-        self.device = params.get('device', '/dev/vdb')
+        # Use provided device, or detect an available one
+        self.device = params.get('device')
+        if not self.device:
+            self.device = get_practice_device()
+        if not self.device:
+            self.device = '/dev/vdb'  # Fallback for display
+
         self.vg_name = params.get('vg_name', f'vg_exam{random.randint(1,99)}')
         self.lv_name = params.get('lv_name', f'lv_data{random.randint(1,99)}')
         self.lv_size_mb = params.get('size', random.choice([1000, 1500, 2000]))
