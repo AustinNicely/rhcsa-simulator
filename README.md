@@ -11,15 +11,26 @@ A realistic command-line RHCSA (Red Hat Certified System Administrator) exam sim
 
 ### Testing Modes
 - **Full Exam Mode**: Simulates a complete RHCSA exam with 15-20 tasks covering all objectives
-- **Practice Mode**: Focus on specific categories (Users, LVM, SELinux, etc.) at different difficulty levels
+- **Practice Mode**: Focus on specific categories (Users, LVM, SELinux, etc.) at different difficulty levels with **retry support**
+- **Scenario Mode**: Multi-step real-world scenarios that combine multiple skills
+- **Troubleshooting Mode**: Diagnose and fix broken system configurations
 
 ### Core Features
 - **Automatic Validation**: Validates your system configuration using safe, read-only commands
 - **Adaptive Feedback**: Explains what was expected vs. what was found for each failed check
 - **Progress Tracking**: Saves exam results and displays statistics over time
+- **Weak Area Analysis**: Identifies your weak spots and provides targeted recommendations
+- **Bookmarks**: Save difficult tasks to revisit later
+- **Export Reports**: Generate progress reports in TXT, HTML, or PDF format
 - **Timer Support**: Optional 2.5-hour timer to simulate real exam conditions
 - **Offline Operation**: No internet connection required
 - **Safe & Secure**: Uses command whitelisting and validation-only approach
+
+### Practice Disk Support
+- **Dynamic Device Detection**: LVM tasks automatically detect available disks
+- **Loop Device Support**: Create virtual practice disks - no extra hardware needed!
+- **Easy Setup**: Menu-driven setup for practice disks (option 13)
+- **Works on Cloud VMs**: Practice LVM on AWS/Azure/GCP without adding volumes
 
 ### AI-Powered Feedback (Optional)
 - **Intelligent Analysis**: Line-by-line command analysis using Claude AI
@@ -127,7 +138,31 @@ sudo rhcsa-simulator
    - Services (systemd)
    - And more...
 3. Select difficulty level (easy/exam/hard)
-4. Complete each task and get immediate feedback (no hints)
+4. Complete each task and get immediate feedback
+5. **If you fail**: Choose to Retry, see Solution, or Continue
+6. Review fix suggestions for each failed check
+
+### Setup Practice Disks (for LVM)
+
+If you don't have spare disks for LVM practice:
+
+1. Select "Setup Practice Disks" from main menu (option 13)
+2. Choose "Create practice disks (2 x 500MB)"
+3. Virtual loop devices are created automatically
+4. LVM tasks will now use these devices
+
+**Manual method:**
+```bash
+# Create disk images
+sudo dd if=/dev/zero of=/tmp/disk1.img bs=1M count=500
+sudo dd if=/dev/zero of=/tmp/disk2.img bs=1M count=500
+
+# Attach as loop devices
+sudo losetup -f --show /tmp/disk1.img  # Returns /dev/loop0
+sudo losetup -f --show /tmp/disk2.img  # Returns /dev/loop1
+
+# Now practice LVM on /dev/loop0, /dev/loop1
+```
 
 ### View Progress
 
@@ -135,6 +170,28 @@ Track your improvement over time:
 - Overall statistics (average score, pass rate)
 - Recent exam results
 - Performance by category
+
+### Weak Area Analysis
+
+Identify where you need more practice:
+1. Select "Weak Areas" from main menu
+2. View categories with lowest success rates
+3. Get personalized recommendations
+4. Focus your study time effectively
+
+### Bookmarks
+
+Save tasks to revisit later:
+- Bookmark difficult tasks during practice
+- Review all bookmarked tasks from menu
+- Clear bookmarks when mastered
+
+### Export Reports
+
+Generate progress reports:
+1. Select "Export Report" from main menu
+2. Choose format: TXT, HTML, or PDF
+3. Share or print your progress
 
 ## Recommended Learning Path
 
@@ -309,14 +366,44 @@ sudo python3 rhcsa_simulator.py
 - Run `sudo rhcsa-simulator` to initialize task registry
 - Check logs at `/opt/rhcsa-simulator/data/logs/rhcsa_simulator.log`
 
+### LVM tasks reference missing devices (e.g., /dev/vdb)
+Use the built-in practice disk feature:
+```bash
+sudo rhcsa-simulator
+# Select option 13: Setup Practice Disks
+# Create 2 x 500MB practice disks
+```
+
+Or manually:
+```bash
+sudo dd if=/dev/zero of=/tmp/disk1.img bs=1M count=500
+sudo losetup -f --show /tmp/disk1.img
+# Use the returned device (e.g., /dev/loop0) for LVM practice
+```
+
+### Cleaning up practice disks
+```bash
+# Remove LVM structures first
+sudo vgremove -f <vgname>
+sudo pvremove /dev/loop0
+
+# Detach loop devices
+sudo losetup -d /dev/loop0
+sudo losetup -d /dev/loop1
+
+# Remove image files
+sudo rm /var/lib/rhcsa-simulator/loops/*.img
+```
+
 ## Development
 
 ### Project Stats
-- **Lines of Code**: ~5,500
+- **Lines of Code**: ~7,000+
 - **Task Categories**: 12
-- **Task Types**: 20+ implemented, expandable to 100+
+- **Task Types**: 25+ implemented, expandable to 100+
 - **Validators**: 50+ validation functions
-- **Dependencies**: 0 (Python stdlib only)
+- **Modes**: 7 (Learn, Guided Practice, Command Recall, Exam, Practice, Scenario, Troubleshoot)
+- **Dependencies**: 0 (Python stdlib only, optional: anthropic for AI feedback)
 
 ### Testing Tasks
 
@@ -356,6 +443,21 @@ This is an educational tool for RHCSA exam preparation. Use at your own risk on 
 
 ## Version
 
+**v2.2.0** - Practice Disk Support
+- Dynamic device detection for LVM tasks
+- Loop device support - practice LVM without extra disks
+- "Setup Practice Disks" menu option
+- Works on cloud VMs (AWS, Azure, GCP) without adding volumes
+
+**v2.1.0** - Enhanced Practice & Analytics
+- Retry option in Practice Mode (R to retry, S for solution)
+- Scenario Mode - multi-step real-world scenarios
+- Troubleshooting Mode - diagnose broken systems
+- Weak Area Analysis with recommendations
+- Bookmarks - save tasks for later
+- Export Reports (TXT, HTML, PDF)
+- Fix suggestions for failed validation checks
+
 **v2.0.0** - AI-Powered Feedback Release
 - Added AI-powered intelligent feedback using Claude API
 - Command history tracking and analysis
@@ -367,4 +469,4 @@ This is an educational tool for RHCSA exam preparation. Use at your own risk on 
 
 ---
 
-**Good luck with your RHCSA certification!** 🎓
+**Good luck with your RHCSA certification!**
