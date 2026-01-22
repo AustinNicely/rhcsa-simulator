@@ -34,10 +34,10 @@ class PullContainerImageTask(BaseTask):
     def generate(self, **params):
         """Generate image pull task."""
         images = [
-            'registry.access.redhat.com/ubi8/ubi:latest',
+            'docker.io/library/fedora:latest',
             'docker.io/library/httpd:latest',
             'docker.io/library/nginx:latest',
-            'registry.access.redhat.com/ubi9/ubi-minimal:latest',
+            'docker.io/library/alpine:latest',
         ]
 
         self.image_name = params.get('image', random.choice(images))
@@ -326,7 +326,7 @@ class ContainerVolumeTask(BaseTask):
     def generate(self, **params):
         """Generate container volume task."""
         self.container_name = params.get('name', f'data-container{random.randint(1,99)}')
-        self.image_name = params.get('image', 'ubi8/ubi:latest')
+        self.image_name = params.get('image', 'docker.io/library/fedora:latest')
         self.host_path = params.get('host_path', '/opt/containerdata')
         self.container_path = params.get('container_path', '/data')
 
