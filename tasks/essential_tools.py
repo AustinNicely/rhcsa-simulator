@@ -545,3 +545,464 @@ class IORedirectionTask(BaseTask):
 
         passed = total_points >= (self.points * 0.7)
         return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("essential_tools")
+class CreateHardLinkTask(BaseTask):
+    """Create a hard link to a file."""
+
+    def __init__(self):
+        super().__init__(
+            id="tools_hardlink_001",
+            category="essential_tools",
+            difficulty="medium",
+            points=8
+        )
+        self.target_file = None
+        self.link_path = None
+
+    def generate(self, **params):
+        """Generate hard link task."""
+        file_suffix = random.randint(1, 99)
+        self.target_file = params.get('target', f'/tmp/original{file_suffix}.txt')
+        self.link_path = params.get('link', f'/tmp/hardlink{file_suffix}.txt')
+
+        self.description = (
+            f"Create a hard link:\n"
+            f"  - Target file: {self.target_file} (create this file first if needed)\n"
+            f"  - Hard link name: {self.link_path}\n"
+            f"  - Both files should share the same inode"
+        )
+
+        self.hints = [
+            f"Create target file: touch {self.target_file}",
+            f"Create hard link: ln {self.target_file} {self.link_path}",
+            "Hard links share the same inode number",
+            "Verify with: ls -i (shows inode numbers)",
+            "Hard links cannot cross filesystems"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate hard link creation."""
+        checks = []
+        total_points = 0
+
+        import os
+
+        # Check 1: Target file exists (2 points)
+        if validate_file_exists(self.target_file):
+            checks.append(ValidationCheck(
+                name="target_exists",
+                passed=True,
+                points=2,
+                message=f"Target file exists"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="target_exists",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"Target file not found: {self.target_file}"
+            ))
+            return ValidationResult(self.id, False, total_points, self.points, checks)
+
+        # Check 2: Link exists (2 points)
+        if validate_file_exists(self.link_path):
+            checks.append(ValidationCheck(
+                name="link_exists",
+                passed=True,
+                points=2,
+                message=f"Link file exists"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="link_exists",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"Link not found: {self.link_path}"
+            ))
+            return ValidationResult(self.id, False, total_points, self.points, checks)
+
+        # Check 3: Same inode (hard link verification) (4 points)
+        try:
+            target_inode = os.stat(self.target_file).st_ino
+            link_inode = os.stat(self.link_path).st_ino
+
+            if target_inode == link_inode:
+                checks.append(ValidationCheck(
+                    name="same_inode",
+                    passed=True,
+                    points=4,
+                    message=f"Hard link confirmed (same inode: {target_inode})"
+                ))
+                total_points += 4
+            else:
+                # Check if it's a symbolic link instead
+                if os.path.islink(self.link_path):
+                    checks.append(ValidationCheck(
+                        name="same_inode",
+                        passed=False,
+                        points=0,
+                        max_points=4,
+                        message=f"This is a symbolic link, not a hard link (different inodes)"
+                    ))
+                else:
+                    checks.append(ValidationCheck(
+                        name="same_inode",
+                        passed=False,
+                        points=0,
+                        max_points=4,
+                        message=f"Inodes don't match (target: {target_inode}, link: {link_inode})"
+                    ))
+        except Exception as e:
+            checks.append(ValidationCheck(
+                name="same_inode",
+                passed=False,
+                points=0,
+                max_points=4,
+                message=f"Could not verify inode: {e}"
+            ))
+
+        passed = total_points >= (self.points * 0.7)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("essential_tools")
+class CreateSymbolicLinkTask(BaseTask):
+    """Create a symbolic (soft) link to a file or directory."""
+
+    def __init__(self):
+        super().__init__(
+            id="tools_symlink_001",
+            category="essential_tools",
+            difficulty="easy",
+            points=6
+        )
+        self.target = None
+        self.link_path = None
+        self.is_directory = False
+
+    def generate(self, **params):
+        """Generate symbolic link task."""
+        link_suffix = random.randint(1, 99)
+        self.is_directory = params.get('is_directory', random.choice([True, False]))
+
+        if self.is_directory:
+            self.target = params.get('target', '/var/log')
+            self.link_path = params.get('link', f'/home/loglink{link_suffix}')
+        else:
+            self.target = params.get('target', '/etc/passwd')
+            self.link_path = params.get('link', f'/tmp/passwdlink{link_suffix}')
+
+        target_type = "directory" if self.is_directory else "file"
+
+        self.description = (
+            f"Create a symbolic link:\n"
+            f"  - Target {target_type}: {self.target}\n"
+            f"  - Symbolic link: {self.link_path}\n"
+            f"  - The link should point to the target"
+        )
+
+        self.hints = [
+            f"Create symbolic link: ln -s {self.target} {self.link_path}",
+            "The -s flag creates a symbolic (soft) link",
+            "Symbolic links can point to files or directories",
+            "Symbolic links can cross filesystems",
+            "Verify with: ls -l (shows link -> target)"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate symbolic link creation."""
+        checks = []
+        total_points = 0
+
+        import os
+
+        # Check 1: Target exists (1 point)
+        if os.path.exists(self.target):
+            checks.append(ValidationCheck(
+                name="target_exists",
+                passed=True,
+                points=1,
+                message=f"Target exists: {self.target}"
+            ))
+            total_points += 1
+        else:
+            checks.append(ValidationCheck(
+                name="target_exists",
+                passed=False,
+                points=0,
+                max_points=1,
+                message=f"Target not found: {self.target}"
+            ))
+
+        # Check 2: Link exists and is a symlink (2 points)
+        if os.path.islink(self.link_path):
+            checks.append(ValidationCheck(
+                name="is_symlink",
+                passed=True,
+                points=2,
+                message=f"Symbolic link exists"
+            ))
+            total_points += 2
+
+            # Check 3: Link points to correct target (3 points)
+            actual_target = os.readlink(self.link_path)
+            if actual_target == self.target or os.path.realpath(self.link_path) == os.path.realpath(self.target):
+                checks.append(ValidationCheck(
+                    name="correct_target",
+                    passed=True,
+                    points=3,
+                    message=f"Link correctly points to: {self.target}"
+                ))
+                total_points += 3
+            else:
+                checks.append(ValidationCheck(
+                    name="correct_target",
+                    passed=False,
+                    points=0,
+                    max_points=3,
+                    message=f"Link points to wrong target: {actual_target}"
+                ))
+        elif os.path.exists(self.link_path):
+            # File exists but is not a symlink
+            checks.append(ValidationCheck(
+                name="is_symlink",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"File exists but is not a symbolic link (might be hard link or copy)"
+            ))
+        else:
+            checks.append(ValidationCheck(
+                name="is_symlink",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"Link not found: {self.link_path}"
+            ))
+
+        passed = total_points >= (self.points * 0.7)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("essential_tools")
+class FindByPermissionsTask(BaseTask):
+    """Find files by special permissions (SUID, SGID)."""
+
+    def __init__(self):
+        super().__init__(
+            id="tools_find_perm_001",
+            category="essential_tools",
+            difficulty="exam",
+            points=10
+        )
+        self.search_path = None
+        self.permission_type = None
+        self.output_file = None
+
+    def generate(self, **params):
+        """Generate find by permissions task."""
+        perm_options = [
+            ('suid', '-perm -4000', 'SUID (setuid) files'),
+            ('sgid', '-perm -2000', 'SGID (setgid) files'),
+            ('world_writable', '-perm -0002', 'world-writable files'),
+        ]
+
+        self.search_path = params.get('path', '/')
+        self.output_file = params.get('output', '/tmp/special_perms.txt')
+
+        if params.get('permission_type'):
+            self.permission_type = params['permission_type']
+            self.perm_flag = next((p[1] for p in perm_options if p[0] == self.permission_type), '-perm -4000')
+            self.perm_desc = next((p[2] for p in perm_options if p[0] == self.permission_type), 'special permission files')
+        else:
+            self.permission_type, self.perm_flag, self.perm_desc = random.choice(perm_options)
+
+        self.description = (
+            f"Find files with special permissions:\n"
+            f"  - Search path: {self.search_path}\n"
+            f"  - Find all {self.perm_desc}\n"
+            f"  - Save results to: {self.output_file}\n"
+            f"  - Suppress permission denied errors"
+        )
+
+        self.hints = [
+            f"Command: find {self.search_path} {self.perm_flag} > {self.output_file} 2>/dev/null",
+            "SUID bit: -perm -4000",
+            "SGID bit: -perm -2000",
+            "World writable: -perm -0002",
+            "The - before permission means 'at least these bits'",
+            "2>/dev/null redirects errors (permission denied) to nowhere"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate find by permissions."""
+        checks = []
+        total_points = 0
+
+        # Check: Output file exists
+        if validate_file_exists(self.output_file):
+            checks.append(ValidationCheck(
+                name="output_file_exists",
+                passed=True,
+                points=5,
+                message=f"Output file created"
+            ))
+            total_points += 5
+
+            # Check if file has content (may be empty if no matching files, which is OK)
+            try:
+                with open(self.output_file, 'r') as f:
+                    content = f.read()
+                    if content.strip():
+                        checks.append(ValidationCheck(
+                            name="has_results",
+                            passed=True,
+                            points=5,
+                            message=f"Found files with {self.perm_desc}"
+                        ))
+                        total_points += 5
+                    else:
+                        # Empty file could be valid if no such files exist
+                        checks.append(ValidationCheck(
+                            name="has_results",
+                            passed=True,
+                            points=3,
+                            message=f"Output file exists but is empty (may be correct if no matches)"
+                        ))
+                        total_points += 3
+            except Exception as e:
+                checks.append(ValidationCheck(
+                    name="has_results",
+                    passed=False,
+                    points=0,
+                    max_points=5,
+                    message=f"Could not read file: {e}"
+                ))
+        else:
+            checks.append(ValidationCheck(
+                name="output_file_exists",
+                passed=False,
+                points=0,
+                max_points=5,
+                message=f"Output file not found"
+            ))
+
+        passed = total_points >= (self.points * 0.6)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("essential_tools")
+class CopyPreserveTask(BaseTask):
+    """Copy files while preserving attributes."""
+
+    def __init__(self):
+        super().__init__(
+            id="tools_copy_001",
+            category="essential_tools",
+            difficulty="medium",
+            points=8
+        )
+        self.source = None
+        self.destination = None
+
+    def generate(self, **params):
+        """Generate copy with preserve task."""
+        suffix = random.randint(1, 99)
+        self.source = params.get('source', '/etc/sysconfig')
+        self.destination = params.get('destination', f'/backup/sysconfig{suffix}')
+
+        self.description = (
+            f"Copy a directory while preserving all attributes:\n"
+            f"  - Source: {self.source}\n"
+            f"  - Destination: {self.destination}\n"
+            f"  - Preserve: permissions, ownership, timestamps\n"
+            f"  - Copy all contents recursively"
+        )
+
+        self.hints = [
+            f"Use cp with archive mode: cp -a {self.source} {self.destination}",
+            "Alternative: cp -rp (recursive, preserve)",
+            "-a is equivalent to -dR --preserve=all",
+            "This preserves: mode, ownership, timestamps, links",
+            "Verify with: ls -la on both directories"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate copy preserve."""
+        checks = []
+        total_points = 0
+
+        import os
+
+        # Check 1: Destination exists (4 points)
+        if os.path.exists(self.destination):
+            checks.append(ValidationCheck(
+                name="destination_exists",
+                passed=True,
+                points=4,
+                message=f"Destination exists"
+            ))
+            total_points += 4
+
+            # Check 2: Has contents (4 points)
+            try:
+                if os.path.isdir(self.destination):
+                    contents = os.listdir(self.destination)
+                    if contents:
+                        checks.append(ValidationCheck(
+                            name="has_contents",
+                            passed=True,
+                            points=4,
+                            message=f"Directory has contents ({len(contents)} items)"
+                        ))
+                        total_points += 4
+                    else:
+                        checks.append(ValidationCheck(
+                            name="has_contents",
+                            passed=False,
+                            points=0,
+                            max_points=4,
+                            message=f"Directory is empty"
+                        ))
+                else:
+                    # It's a file
+                    checks.append(ValidationCheck(
+                        name="has_contents",
+                        passed=True,
+                        points=4,
+                        message=f"File copied"
+                    ))
+                    total_points += 4
+            except Exception as e:
+                checks.append(ValidationCheck(
+                    name="has_contents",
+                    passed=False,
+                    points=0,
+                    max_points=4,
+                    message=f"Could not check contents: {e}"
+                ))
+        else:
+            checks.append(ValidationCheck(
+                name="destination_exists",
+                passed=False,
+                points=0,
+                max_points=4,
+                message=f"Destination not found: {self.destination}"
+            ))
+
+        passed = total_points >= (self.points * 0.7)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)

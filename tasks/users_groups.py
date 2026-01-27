@@ -480,3 +480,530 @@ class ModifyUserShellTask(BaseTask):
 
         passed = total_points >= (self.points * 0.7)
         return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("users_groups")
+class PasswordAgingTask(BaseTask):
+    """Configure password aging policies for a user."""
+
+    def __init__(self):
+        super().__init__(
+            id="password_aging_001",
+            category="users_groups",
+            difficulty="exam",
+            points=10
+        )
+        self.username = None
+        self.max_days = None
+        self.min_days = None
+        self.warn_days = None
+        self.force_change = False
+
+    def generate(self, **params):
+        """Generate password aging task."""
+        self.username = params.get('username', f'ageuser{random.randint(1, 99)}')
+        self.max_days = params.get('max_days', random.choice([30, 60, 90, 180]))
+        self.min_days = params.get('min_days', random.choice([0, 1, 7]))
+        self.warn_days = params.get('warn_days', random.choice([7, 14]))
+        self.force_change = params.get('force_change', random.choice([True, False]))
+
+        force_text = "\n  - User must change password on next login" if self.force_change else ""
+
+        self.description = (
+            f"Configure password aging for user '{self.username}':\n"
+            f"  - Maximum days between password changes: {self.max_days}\n"
+            f"  - Minimum days between password changes: {self.min_days}\n"
+            f"  - Warning days before expiration: {self.warn_days}"
+            f"{force_text}"
+        )
+
+        self.hints = [
+            "Use the 'chage' command to set password aging policies",
+            f"chage -M {self.max_days} -m {self.min_days} -W {self.warn_days} {self.username}",
+            "To force password change on next login: chage -d 0 username",
+            "Verify with: chage -l username"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate password aging configuration."""
+        checks = []
+        total_points = 0
+
+        # Check 1: User exists (2 points)
+        if validate_user_exists(self.username):
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=True,
+                points=2,
+                message=f"User '{self.username}' exists"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"User '{self.username}' does not exist"
+            ))
+            return ValidationResult(self.id, False, total_points, self.points, checks)
+
+        # Check password aging values from /etc/shadow
+        try:
+            import subprocess
+            result = subprocess.run(
+                ['chage', '-l', self.username],
+                capture_output=True, text=True, timeout=5
+            )
+            output = result.stdout
+
+            # Check 2: Maximum days (3 points)
+            if f"Maximum number of days between password change" in output:
+                if str(self.max_days) in output.split("Maximum number of days between password change")[1].split('\n')[0]:
+                    checks.append(ValidationCheck(
+                        name="max_days",
+                        passed=True,
+                        points=3,
+                        message=f"Maximum days set correctly: {self.max_days}"
+                    ))
+                    total_points += 3
+                else:
+                    checks.append(ValidationCheck(
+                        name="max_days",
+                        passed=False,
+                        points=0,
+                        max_points=3,
+                        message=f"Maximum days not set to {self.max_days}"
+                    ))
+
+            # Check 3: Minimum days (2 points)
+            if f"Minimum number of days between password change" in output:
+                if str(self.min_days) in output.split("Minimum number of days between password change")[1].split('\n')[0]:
+                    checks.append(ValidationCheck(
+                        name="min_days",
+                        passed=True,
+                        points=2,
+                        message=f"Minimum days set correctly: {self.min_days}"
+                    ))
+                    total_points += 2
+                else:
+                    checks.append(ValidationCheck(
+                        name="min_days",
+                        passed=False,
+                        points=0,
+                        max_points=2,
+                        message=f"Minimum days not set to {self.min_days}"
+                    ))
+
+            # Check 4: Warning days (2 points)
+            if "Number of days of warning before password expires" in output:
+                if str(self.warn_days) in output.split("Number of days of warning before password expires")[1].split('\n')[0]:
+                    checks.append(ValidationCheck(
+                        name="warn_days",
+                        passed=True,
+                        points=2,
+                        message=f"Warning days set correctly: {self.warn_days}"
+                    ))
+                    total_points += 2
+                else:
+                    checks.append(ValidationCheck(
+                        name="warn_days",
+                        passed=False,
+                        points=0,
+                        max_points=2,
+                        message=f"Warning days not set to {self.warn_days}"
+                    ))
+
+            # Check 5: Force change on next login (1 point, only if required)
+            if self.force_change:
+                if "password must be changed" in output.lower() or "Last password change" in output and "password must be changed" in output:
+                    checks.append(ValidationCheck(
+                        name="force_change",
+                        passed=True,
+                        points=1,
+                        message="Password change required on next login"
+                    ))
+                    total_points += 1
+                else:
+                    checks.append(ValidationCheck(
+                        name="force_change",
+                        passed=False,
+                        points=0,
+                        max_points=1,
+                        message="Password change on next login not configured"
+                    ))
+
+        except Exception as e:
+            checks.append(ValidationCheck(
+                name="chage_check",
+                passed=False,
+                points=0,
+                max_points=8,
+                message=f"Could not verify password aging: {e}"
+            ))
+
+        passed = total_points >= (self.points * 0.6)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("users_groups")
+class LockUnlockUserTask(BaseTask):
+    """Lock or unlock a user account."""
+
+    def __init__(self):
+        super().__init__(
+            id="user_lock_001",
+            category="users_groups",
+            difficulty="easy",
+            points=5
+        )
+        self.username = None
+        self.action = None  # 'lock' or 'unlock'
+
+    def generate(self, **params):
+        """Generate lock/unlock user task."""
+        self.username = params.get('username', f'lockuser{random.randint(1, 99)}')
+        self.action = params.get('action', random.choice(['lock', 'unlock']))
+
+        if self.action == 'lock':
+            self.description = (
+                f"Lock the user account '{self.username}':\n"
+                f"  - Prevent the user from logging in\n"
+                f"  - Do NOT delete the account\n"
+                f"  - The account should be locked but still exist"
+            )
+        else:
+            self.description = (
+                f"Unlock the user account '{self.username}':\n"
+                f"  - Allow the user to log in again\n"
+                f"  - The account should be fully accessible"
+            )
+
+        self.hints = [
+            f"Use 'usermod -L username' to lock an account",
+            f"Use 'usermod -U username' to unlock an account",
+            "Alternative: 'passwd -l username' to lock, 'passwd -u username' to unlock",
+            "Verify with: passwd -S username (shows LK for locked, PS for password set)"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate user lock/unlock."""
+        checks = []
+        total_points = 0
+
+        # Check 1: User exists (2 points)
+        if validate_user_exists(self.username):
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=True,
+                points=2,
+                message=f"User '{self.username}' exists"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"User '{self.username}' does not exist"
+            ))
+            return ValidationResult(self.id, False, total_points, self.points, checks)
+
+        # Check 2: Account lock status (3 points)
+        try:
+            import subprocess
+            result = subprocess.run(
+                ['passwd', '-S', self.username],
+                capture_output=True, text=True, timeout=5
+            )
+            output = result.stdout.strip()
+
+            # passwd -S output: username LK/PS/NP ... (LK=locked, PS=password set, NP=no password)
+            is_locked = ' LK ' in output or ' L ' in output
+
+            if self.action == 'lock':
+                if is_locked:
+                    checks.append(ValidationCheck(
+                        name="account_locked",
+                        passed=True,
+                        points=3,
+                        message=f"Account is correctly locked"
+                    ))
+                    total_points += 3
+                else:
+                    checks.append(ValidationCheck(
+                        name="account_locked",
+                        passed=False,
+                        points=0,
+                        max_points=3,
+                        message=f"Account is NOT locked (expected locked)"
+                    ))
+            else:  # unlock
+                if not is_locked:
+                    checks.append(ValidationCheck(
+                        name="account_unlocked",
+                        passed=True,
+                        points=3,
+                        message=f"Account is correctly unlocked"
+                    ))
+                    total_points += 3
+                else:
+                    checks.append(ValidationCheck(
+                        name="account_unlocked",
+                        passed=False,
+                        points=0,
+                        max_points=3,
+                        message=f"Account is still locked (expected unlocked)"
+                    ))
+
+        except Exception as e:
+            checks.append(ValidationCheck(
+                name="lock_status",
+                passed=False,
+                points=0,
+                max_points=3,
+                message=f"Could not verify lock status: {e}"
+            ))
+
+        passed = total_points >= (self.points * 0.7)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("users_groups")
+class CreateNologinUserTask(BaseTask):
+    """Create a system/service user that cannot log in interactively."""
+
+    def __init__(self):
+        super().__init__(
+            id="user_nologin_001",
+            category="users_groups",
+            difficulty="medium",
+            points=6
+        )
+        self.username = None
+        self.uid = None
+
+    def generate(self, **params):
+        """Generate nologin user task."""
+        self.username = params.get('username', f'svcaccount{random.randint(1, 99)}')
+        self.uid = params.get('uid', random.randint(2000, 2999))
+
+        self.description = (
+            f"Create a service account named '{self.username}':\n"
+            f"  - UID: {self.uid}\n"
+            f"  - The user should NOT be able to log in interactively\n"
+            f"  - This is typically used for running services/daemons"
+        )
+
+        self.hints = [
+            "Use -s /sbin/nologin or -s /bin/false for the shell",
+            f"Example: useradd -u {self.uid} -s /sbin/nologin {self.username}",
+            "/sbin/nologin shows a polite message, /bin/false just exits",
+            "Verify with: getent passwd username | grep nologin"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate nologin user creation."""
+        checks = []
+        total_points = 0
+
+        # Check 1: User exists (2 points)
+        if validate_user_exists(self.username):
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=True,
+                points=2,
+                message=f"User '{self.username}' exists"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"User '{self.username}' does not exist"
+            ))
+            return ValidationResult(self.id, False, total_points, self.points, checks)
+
+        # Check 2: Correct UID (2 points)
+        actual_uid = get_user_uid(self.username)
+        if actual_uid == str(self.uid):
+            checks.append(ValidationCheck(
+                name="correct_uid",
+                passed=True,
+                points=2,
+                message=f"UID is correct: {self.uid}"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="correct_uid",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"UID mismatch: expected {self.uid}, got {actual_uid}"
+            ))
+
+        # Check 3: Shell is nologin or false (2 points)
+        actual_shell = get_user_shell(self.username)
+        nologin_shells = ['/sbin/nologin', '/usr/sbin/nologin', '/bin/false']
+        if actual_shell in nologin_shells:
+            checks.append(ValidationCheck(
+                name="nologin_shell",
+                passed=True,
+                points=2,
+                message=f"Shell correctly set to prevent login: {actual_shell}"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="nologin_shell",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"Shell allows login: {actual_shell} (expected nologin or false)"
+            ))
+
+        passed = total_points >= (self.points * 0.7)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)
+
+
+@TaskRegistry.register("users_groups")
+class UserExpirationTask(BaseTask):
+    """Set account expiration date for a user."""
+
+    def __init__(self):
+        super().__init__(
+            id="user_expire_001",
+            category="users_groups",
+            difficulty="medium",
+            points=6
+        )
+        self.username = None
+        self.expire_date = None
+
+    def generate(self, **params):
+        """Generate user expiration task."""
+        self.username = params.get('username', f'tempuser{random.randint(1, 99)}')
+
+        # Generate a future date
+        import datetime
+        days_ahead = random.choice([30, 60, 90, 180, 365])
+        future_date = datetime.date.today() + datetime.timedelta(days=days_ahead)
+        self.expire_date = params.get('expire_date', future_date.strftime('%Y-%m-%d'))
+
+        self.description = (
+            f"Configure account expiration for user '{self.username}':\n"
+            f"  - Account should expire on: {self.expire_date}\n"
+            f"  - After this date, the user will NOT be able to log in\n"
+            f"  - This is useful for contractor/temporary accounts"
+        )
+
+        self.hints = [
+            f"Use 'chage -E {self.expire_date} {self.username}'",
+            f"Or use 'usermod -e {self.expire_date} {self.username}'",
+            "Date format is YYYY-MM-DD",
+            "Verify with: chage -l username | grep 'Account expires'"
+        ]
+
+        return self
+
+    def validate(self):
+        """Validate user expiration."""
+        checks = []
+        total_points = 0
+
+        # Check 1: User exists (2 points)
+        if validate_user_exists(self.username):
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=True,
+                points=2,
+                message=f"User '{self.username}' exists"
+            ))
+            total_points += 2
+        else:
+            checks.append(ValidationCheck(
+                name="user_exists",
+                passed=False,
+                points=0,
+                max_points=2,
+                message=f"User '{self.username}' does not exist"
+            ))
+            return ValidationResult(self.id, False, total_points, self.points, checks)
+
+        # Check 2: Expiration date set (4 points)
+        try:
+            import subprocess
+            result = subprocess.run(
+                ['chage', '-l', self.username],
+                capture_output=True, text=True, timeout=5
+            )
+            output = result.stdout
+
+            # Parse expected date to various formats
+            import datetime
+            exp_date = datetime.datetime.strptime(self.expire_date, '%Y-%m-%d')
+            date_formats = [
+                exp_date.strftime('%b %d, %Y'),  # Jan 15, 2025
+                exp_date.strftime('%B %d, %Y'),  # January 15, 2025
+                self.expire_date,  # 2025-01-15
+            ]
+
+            if "Account expires" in output:
+                expire_line = output.split("Account expires")[1].split('\n')[0]
+                date_found = any(fmt in expire_line for fmt in date_formats)
+
+                if date_found:
+                    checks.append(ValidationCheck(
+                        name="expire_date",
+                        passed=True,
+                        points=4,
+                        message=f"Account expiration set correctly: {self.expire_date}"
+                    ))
+                    total_points += 4
+                elif "never" not in expire_line.lower():
+                    # Date is set but might be in different format
+                    checks.append(ValidationCheck(
+                        name="expire_date",
+                        passed=True,
+                        points=3,
+                        message=f"Account expiration is set (partial credit)"
+                    ))
+                    total_points += 3
+                else:
+                    checks.append(ValidationCheck(
+                        name="expire_date",
+                        passed=False,
+                        points=0,
+                        max_points=4,
+                        message=f"Account expiration not set (shows 'never')"
+                    ))
+            else:
+                checks.append(ValidationCheck(
+                    name="expire_date",
+                    passed=False,
+                    points=0,
+                    max_points=4,
+                    message=f"Could not find account expiration info"
+                ))
+
+        except Exception as e:
+            checks.append(ValidationCheck(
+                name="expire_check",
+                passed=False,
+                points=0,
+                max_points=4,
+                message=f"Could not verify expiration: {e}"
+            ))
+
+        passed = total_points >= (self.points * 0.7)
+        return ValidationResult(self.id, passed, total_points, self.points, checks)

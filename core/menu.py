@@ -28,23 +28,24 @@ class MenuSystem:
             fmt.print_menu_option(1, "Learn Mode", "Study RHCSA concepts with explanations & examples")
             fmt.print_menu_option(2, "Guided Practice", "Practice with progressive hints & feedback")
             fmt.print_menu_option(3, "Command Recall", "Build muscle memory by typing commands")
+            fmt.print_menu_option(4, "Flashcard Quiz", "Quick Q&A for rapid review [NEW]")
             print()
             print(fmt.dim("=== Testing Modes ==="))
-            fmt.print_menu_option(4, "Exam Mode", "Take a full mock RHCSA exam (15-20 tasks)")
-            fmt.print_menu_option(5, "Practice Mode", "Practice specific task categories")
-            fmt.print_menu_option(6, "Scenario Mode", "Multi-step real-world scenarios [NEW]")
-            fmt.print_menu_option(7, "Troubleshooting", "Diagnose & fix broken systems [NEW]")
+            fmt.print_menu_option(5, "Exam Mode", "Take a full mock RHCSA exam (15-20 tasks)")
+            fmt.print_menu_option(6, "Practice Mode", "Practice specific task categories")
+            fmt.print_menu_option(7, "Scenario Mode", "Multi-step real-world scenarios")
+            fmt.print_menu_option(8, "Troubleshooting", "Diagnose & fix broken systems")
             print()
             print(fmt.dim("=== Progress & Analytics ==="))
-            fmt.print_menu_option(8, "View Progress", "See your exam history and statistics")
-            fmt.print_menu_option(9, "Weak Areas", "Analyze weak spots & get recommendations [NEW]")
-            fmt.print_menu_option(10, "Bookmarks", "Manage saved tasks for later [NEW]")
-            fmt.print_menu_option(11, "Export Report", "Generate PDF/HTML progress report [NEW]")
+            fmt.print_menu_option(9, "View Progress", "See your exam history and statistics")
+            fmt.print_menu_option(10, "Weak Areas", "Analyze weak spots & get recommendations")
+            fmt.print_menu_option(11, "Bookmarks", "Manage saved tasks for later")
+            fmt.print_menu_option(12, "Export Report", "Generate PDF/HTML progress report")
             print()
             print(fmt.dim("=== Help & Info ==="))
-            fmt.print_menu_option(12, "Task Statistics", "View available tasks by category")
-            fmt.print_menu_option(13, "Setup Practice Disks", "Create/manage loop devices for LVM practice")
-            fmt.print_menu_option(14, "Help", "How to use this simulator")
+            fmt.print_menu_option(13, "Task Statistics", "View available tasks by category")
+            fmt.print_menu_option(14, "Setup Practice Disks", "Create/manage loop devices for LVM practice")
+            fmt.print_menu_option(15, "Help", "How to use this simulator")
             fmt.print_menu_option(0, "Exit", "Quit the simulator")
             print()
 
@@ -57,26 +58,28 @@ class MenuSystem:
             elif choice == '3':
                 return 'command_recall'
             elif choice == '4':
-                return 'exam'
+                return 'flashcard'
             elif choice == '5':
-                return 'practice'
+                return 'exam'
             elif choice == '6':
-                return 'scenario'
+                return 'practice'
             elif choice == '7':
-                return 'troubleshoot'
+                return 'scenario'
             elif choice == '8':
-                return 'progress'
+                return 'troubleshoot'
             elif choice == '9':
-                return 'weak_areas'
+                return 'progress'
             elif choice == '10':
-                return 'bookmarks'
+                return 'weak_areas'
             elif choice == '11':
-                return 'export'
+                return 'bookmarks'
             elif choice == '12':
-                return 'stats'
+                return 'export'
             elif choice == '13':
-                return 'setup_disks'
+                return 'stats'
             elif choice == '14':
+                return 'setup_disks'
+            elif choice == '15':
                 return 'help'
             elif choice == '0':
                 return 'exit'

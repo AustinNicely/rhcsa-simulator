@@ -21,6 +21,7 @@ from core.practice import run_practice_mode
 from core.practice_enhanced import run_guided_practice
 from core.learn import run_learn_mode
 from core.command_recall import run_command_recall
+from core.flashcard_mode import run_flashcard_mode
 from core.results import get_results_manager
 from core.scenario_mode import run_scenario_mode
 from core.troubleshoot_mode import run_troubleshoot_mode
@@ -58,6 +59,9 @@ def main():
             elif choice == 'command_recall':
                 run_command_recall()
                 input("\nPress Enter to return to menu...")
+
+            elif choice == 'flashcard':
+                run_flashcard_mode()
 
             elif choice == 'exam':
                 run_exam_mode()
